@@ -1,0 +1,9 @@
+démarrer votre serveur Symfony :
+
+cd portfolio-backend
+symfony server:start
+
+démarrer votre frontend React :
+
+cd portfolio-frontend
+npm start
