@@ -56,6 +56,33 @@ const Projects: React.FC = () => {
   const [selectedTag, setSelectedTag] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('date_desc');
+  const [allTags, setAllTags] = useState<string[]>([]);
+
+  const textFieldStyle = {
+    '& .MuiOutlinedInput-root': {
+      '& fieldset': {
+        borderColor: 'rgba(255, 255, 255, 0.23)',
+      },
+      '&:hover fieldset': {
+        borderColor: 'rgba(255, 255, 255, 0.4)',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: 'primary.main',
+      },
+    },
+    '& .MuiInputLabel-root': {
+      color: '#F7F3F7',
+      '&.Mui-focused': {
+        color: '#F7F3F7',
+      },
+    },
+    '& .MuiInputBase-input': {
+      color: '#F7F3F7',
+    },
+    '& .MuiSelect-icon': {
+      color: '#F7F3F7',
+    },
+  };
 
   useEffect(() => {
     dispatch(fetchProjects() as any);
@@ -63,7 +90,10 @@ const Projects: React.FC = () => {
   }, [dispatch]);
 
   // Get unique tags from all projects
-  const allTags = Array.from(new Set(projects.flatMap(project => project.categories)));
+  useEffect(() => {
+    const uniqueTags = Array.from(new Set(projects.flatMap(project => project.categories)));
+    setAllTags(uniqueTags);
+  }, [projects]);
 
   // Filter and sort projects
   const filteredProjects = projects
@@ -208,12 +238,13 @@ const Projects: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             InputProps={{
-              startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />,
+              startAdornment: <SearchIcon color="action" sx={{ color: '#F7F3F7', mr: 1 }} />,
             }}
+            sx={textFieldStyle}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <FormControl fullWidth>
+          <FormControl fullWidth sx={textFieldStyle}>
             <InputLabel>Statut</InputLabel>
             <Select
               value={selectedStatus}
@@ -228,7 +259,7 @@ const Projects: React.FC = () => {
           </FormControl>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <FormControl fullWidth>
+          <FormControl fullWidth sx={textFieldStyle}>
             <InputLabel>Catégorie</InputLabel>
             <Select
               value={selectedTag}
@@ -243,7 +274,7 @@ const Projects: React.FC = () => {
           </FormControl>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <FormControl fullWidth>
+          <FormControl fullWidth sx={textFieldStyle}>
             <InputLabel>Trier par</InputLabel>
             <Select
               value={sortBy}
