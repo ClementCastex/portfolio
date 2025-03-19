@@ -22,6 +22,7 @@ import {
   Select,
   MenuItem,
   Stack,
+  Paper,
 } from '@mui/material';
 import { 
   GitHub, 
@@ -32,7 +33,7 @@ import {
   Search as SearchIcon,
 } from '@mui/icons-material';
 import { RootState } from '../../store';
-import { fetchProjects } from '../../store/slices/projectSlice';
+import { fetchProjects, updateProjectLikes } from '../../store/slices/projectSlice';
 import { addBookmark, removeBookmark, fetchBookmarks } from '../../store/slices/bookmarkSlice';
 import ProjectForm from '../../components/ProjectForm';
 import { API_BASE_URL } from '../../config/api';
@@ -53,14 +54,13 @@ const Projects: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState<string>('');
-  const [sortBy, setSortBy] = useState<'date_asc' | 'date_desc' | 'likes_asc' | 'likes_desc'>('date_desc');
+  const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [sortBy, setSortBy] = useState<string>('date_desc');
 
   useEffect(() => {
     dispatch(fetchProjects() as any);
-    if (token) {
-      dispatch(fetchBookmarks() as any);
-    }
-  }, [dispatch, token]);
+    dispatch(fetchBookmarks() as any);
+  }, [dispatch]);
 
   // Get unique tags from all projects
   const allTags = Array.from(new Set(projects.flatMap(project => project.categories)));
@@ -71,18 +71,19 @@ const Projects: React.FC = () => {
       const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         project.shortDescription.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesTag = !selectedTag || project.categories.includes(selectedTag);
-      return matchesSearch && matchesTag;
+      const matchesStatus = !selectedStatus || project.status === selectedStatus;
+      return matchesSearch && matchesTag && matchesStatus;
     })
     .sort((a, b) => {
       switch (sortBy) {
+        case 'title_asc':
+          return a.title.localeCompare(b.title);
+        case 'title_desc':
+          return b.title.localeCompare(a.title);
         case 'likes_asc':
-          const aLikesAsc = bookmarks.filter(b => b.project.id === a.id).length;
-          const bLikesAsc = bookmarks.filter(b => b.project.id === b.id).length;
-          return aLikesAsc - bLikesAsc;
+          return a.likeTotal - b.likeTotal;
         case 'likes_desc':
-          const aLikesDesc = bookmarks.filter(b => b.project.id === a.id).length;
-          const bLikesDesc = bookmarks.filter(b => b.project.id === b.id).length;
-          return bLikesDesc - aLikesDesc;
+          return b.likeTotal - a.likeTotal;
         case 'date_asc':
           return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
         case 'date_desc':
@@ -92,20 +93,54 @@ const Projects: React.FC = () => {
     });
 
   const isLiked = (projectId: number) => {
-    return bookmarks.some(bookmark => bookmark.project.id === projectId);
+    return bookmarks.some(bookmark => 
+      bookmark && 
+      bookmark.project && 
+      bookmark.project.id === projectId
+    );
   };
 
-  const handleLikeToggle = (projectId: number) => {
+  const handleLikeToggle = async (projectId: number) => {
     if (!token) {
       navigate('/login');
       return;
     }
 
-    const bookmark = bookmarks.find(b => b.project.id === projectId);
-    if (bookmark) {
-      dispatch(removeBookmark(bookmark.id) as any);
-    } else {
-      dispatch(addBookmark(projectId) as any);
+    console.log('Current user:', user);
+    console.log('Current bookmarks:', bookmarks);
+    console.log('Trying to toggle like for project:', projectId);
+
+    try {
+      const bookmark = bookmarks.find(b => b.project?.id === projectId);
+      console.log('Found bookmark:', bookmark);
+
+      if (bookmark) {
+        console.log('Removing bookmark:', bookmark.id);
+        const result = await dispatch(removeBookmark(bookmark.id) as any).unwrap();
+        console.log('Remove result:', result);
+        
+        if (result.action === 'removed') {
+          dispatch(fetchBookmarks() as any);
+          dispatch(updateProjectLikes({
+            projectId: result.project.id,
+            likeTotal: result.totalLikes
+          }));
+        }
+      } else {
+        console.log('Adding bookmark for project:', projectId);
+        const result = await dispatch(addBookmark(projectId) as any).unwrap();
+        console.log('Add result:', result);
+        
+        if (result.action === 'added') {
+          dispatch(fetchBookmarks() as any);
+          dispatch(updateProjectLikes({
+            projectId: result.project.id,
+            likeTotal: result.totalLikes
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling bookmark:', error);
     }
   };
 
@@ -163,67 +198,73 @@ const Projects: React.FC = () => {
         )}
       </Box>
 
-      {/* Search and Filter Section */}
-      <Box sx={{ mb: 4 }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="Rechercher un projet..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              InputProps={{
-                startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <FormControl fullWidth>
-              <InputLabel>Filtrer par tag</InputLabel>
-              <Select
-                value={selectedTag}
-                label="Filtrer par tag"
-                onChange={(e) => setSelectedTag(e.target.value)}
-              >
-                <MenuItem value="">Tous les tags</MenuItem>
-                {allTags.map((tag) => (
-                  <MenuItem key={tag} value={tag}>
-                    {tag}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <FormControl fullWidth>
-              <InputLabel>Trier par</InputLabel>
-              <Select
-                value={sortBy}
-                label="Trier par"
-                onChange={(e) => setSortBy(e.target.value as 'date_asc' | 'date_desc' | 'likes_asc' | 'likes_desc')}
-              >
-                <MenuItem value="date_desc">Date de création (plus récent)</MenuItem>
-                <MenuItem value="date_asc">Date de création (plus ancien)</MenuItem>
-                <MenuItem value="likes_desc">Nombre de likes (plus populaire)</MenuItem>
-                <MenuItem value="likes_asc">Nombre de likes (moins populaire)</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
+      {/* Filtres et recherche */}
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <TextField
+            fullWidth
+            label="Rechercher"
+            variant="outlined"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />,
+            }}
+          />
         </Grid>
-      </Box>
+        <Grid item xs={12} sm={6} md={3}>
+          <FormControl fullWidth>
+            <InputLabel>Statut</InputLabel>
+            <Select
+              value={selectedStatus}
+              label="Statut"
+              onChange={(e) => setSelectedStatus(e.target.value)}
+            >
+              <MenuItem value="">Tous</MenuItem>
+              <MenuItem value="completed">Terminé</MenuItem>
+              <MenuItem value="in_progress">En cours</MenuItem>
+              <MenuItem value="abandoned">Abandonné</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <FormControl fullWidth>
+            <InputLabel>Catégorie</InputLabel>
+            <Select
+              value={selectedTag}
+              label="Catégorie"
+              onChange={(e) => setSelectedTag(e.target.value)}
+            >
+              <MenuItem value="">Toutes</MenuItem>
+              {allTags.map((tag) => (
+                <MenuItem key={tag} value={tag}>{tag}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <FormControl fullWidth>
+            <InputLabel>Trier par</InputLabel>
+            <Select
+              value={sortBy}
+              label="Trier par"
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <MenuItem value="date_desc">Date (Plus récent)</MenuItem>
+              <MenuItem value="date_asc">Date (Plus ancien)</MenuItem>
+              <MenuItem value="title_asc">Titre (A-Z)</MenuItem>
+              <MenuItem value="title_desc">Titre (Z-A)</MenuItem>
+              <MenuItem value="likes_desc">Likes (Plus populaire)</MenuItem>
+              <MenuItem value="likes_asc">Likes (Moins populaire)</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+      </Grid>
 
-      <Grid container spacing={4}>
+      <Grid container spacing={3}>
         {filteredProjects.map((project) => (
           <Grid item key={project.id} xs={12} sm={6} md={4}>
-            <Card
-              sx={{
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                position: 'relative',
-              }}
-            >
+            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               {project.images.length > 0 && (
                 <CardMedia
                   component="img"
@@ -240,27 +281,17 @@ const Projects: React.FC = () => {
                 <Typography variant="body2" color="text.secondary" paragraph>
                   {project.shortDescription}
                 </Typography>
-                <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  <Chip
-                    label={project.status}
-                    color={getStatusColor(project.status)}
-                    size="small"
-                    sx={{
-                      color: 'white',
-                      '& .MuiChip-label': {
-                        color: 'white',
-                      }
-                    }}
-                  />
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
                   {project.categories.map((category, index) => (
-                    <Chip
-                      key={index}
-                      label={category}
-                      size="small"
-                      variant="outlined"
-                    />
+                    <Chip key={index} label={category} size="small" />
                   ))}
                 </Box>
+                <Chip
+                  label={project.status.replace('_', ' ')}
+                  color={getStatusColor(project.status)}
+                  size="small"
+                  sx={{ mb: 2 }}
+                />
               </CardContent>
               <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -316,12 +347,20 @@ const Projects: React.FC = () => {
                     </Tooltip>
                   )}
                 </Box>
-                {token && (
-                  <Tooltip title={isLiked(project.id) ? "Retirer des favoris" : "Ajouter aux favoris"}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    {project.likeTotal}
+                  </Typography>
+                  <Tooltip title={
+                    !token 
+                      ? "Connectez-vous pour liker" 
+                      : isLiked(project.id) 
+                        ? "Retirer des favoris" 
+                        : "Ajouter aux favoris"
+                  }>
                     <IconButton
                       onClick={() => handleLikeToggle(project.id)}
                       size="small"
-                      color={isLiked(project.id) ? "primary" : "default"}
                       sx={{
                         ...(isLiked(project.id) && {
                           color: 'white',
@@ -335,14 +374,14 @@ const Projects: React.FC = () => {
                       {isLiked(project.id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                     </IconButton>
                   </Tooltip>
-                )}
+                </Box>
               </CardActions>
             </Card>
           </Grid>
         ))}
       </Grid>
 
-      {token && (
+      {isFormOpen && token && (
         <ProjectForm
           open={isFormOpen}
           onClose={() => setIsFormOpen(false)}

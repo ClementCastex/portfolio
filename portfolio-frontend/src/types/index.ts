@@ -18,6 +18,7 @@ export interface Project {
   githubUrl?: string;
   createdAt: string;
   updatedAt: string;
+  likeTotal: number;
 }
 
 export interface Bookmark {
