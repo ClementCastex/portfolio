@@ -38,8 +38,8 @@ const TitleSection: React.FC<{ title: string }> = ({ title }) => (
       minHeight: '100vh',
       display: 'flex',
       alignItems: 'center',
-      bgcolor: '#1E1E1E',
-      color: 'white',
+      bgcolor: theme => theme.palette.background.default,
+      color: theme => theme.palette.text.primary,
     }}
   >
     <Box
@@ -68,8 +68,8 @@ const TitleSection: React.FC<{ title: string }> = ({ title }) => (
 const ColorSection = () => (
   <Box sx={{ 
     p: 8, 
-    bgcolor: '#1E1E1E', 
-    color: 'white',
+    bgcolor: theme => theme.palette.background.default,
+    color: theme => theme.palette.text.primary,
     position: 'relative',
     minHeight: '100vh',
     display: 'flex',
@@ -215,8 +215,8 @@ const ColorSection = () => (
 const TypographySection = () => (
   <Box sx={{ 
     p: 8, 
-    bgcolor: '#1E1E1E', 
-    color: 'white',
+    bgcolor: theme => theme.palette.background.default,
+    color: theme => theme.palette.text.primary,
     position: 'relative',
     minHeight: '100vh',
     display: 'flex',
@@ -302,7 +302,7 @@ const TypographySection = () => (
                   fontFamily: 'Exo 2',
                   fontSize: '1rem',
                   fontStyle: 'italic',
-                  color: 'rgba(255, 255, 255, 0.8)'
+                  color: theme => theme.palette.text.primary
                 }}>
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed et vehicula est. In eget erat quis ex vestibulum pretium in eu augue. Proin fringilla ullamcorper ligula, vitae vehicula lacus vulputate eget.
                 </Typography>
@@ -344,7 +344,7 @@ const TypographySection = () => (
                 <Typography sx={{ 
                   fontFamily: 'Quicksand',
                   fontSize: '1rem',
-                  color: 'rgba(255, 255, 255, 0.8)'
+                  color: theme => theme.palette.text.primary
                 }}>
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed et vehicula est. In eget erat quis ex vestibulum pretium in eu augue. Proin fringilla ullamcorper ligula, vitae vehicula lacus vulputate eget.
                 </Typography>
@@ -361,8 +361,8 @@ const TypographySection = () => (
 const StoryTellingSection = () => (
   <Box sx={{ 
     p: 8, 
-    bgcolor: '#1E1E1E', 
-    color: 'white',
+    bgcolor: theme => theme.palette.background.default,
+    color: theme => theme.palette.text.primary,
     position: 'relative',
     minHeight: '100vh',
     display: 'flex',
@@ -419,7 +419,7 @@ const StoryTellingSection = () => (
                 alignItems: 'center',
                 gap: 2
               }}>
-                <Typography variant="h6" sx={{ color: 'white' }}>Premier essai</Typography>
+                <Typography variant="h6" sx={{ color: theme => theme.palette.text.primary }}>Premier essai</Typography>
                 <img 
                   src="/images/Logo idée 1.png" 
                   alt="Logo Icon"
@@ -439,7 +439,7 @@ const StoryTellingSection = () => (
                 alignItems: 'center',
                 gap: 2
               }}>
-                <Typography variant="h6" sx={{ color: 'white' }}>Deuxième essai</Typography>
+                <Typography variant="h6" sx={{ color: theme => theme.palette.text.primary }}>Deuxième essai</Typography>
                 <img 
                   src="/images/Logo idée 1 V2.png" 
                   alt="Logo Icon"
@@ -459,7 +459,7 @@ const StoryTellingSection = () => (
                 alignItems: 'center',
                 gap: 2
               }}>
-                <Typography variant="h6" sx={{ color: 'white' }}>Résultat Final</Typography>
+                <Typography variant="h6" sx={{ color: theme => theme.palette.text.primary }}>Résultat Final</Typography>
                 <img 
                   src="/images/Logo Icon Off V2.svg" 
                   alt="Logo Icon"
@@ -481,8 +481,8 @@ const StoryTellingSection = () => (
 const LogoSection = () => (
   <Box sx={{ 
     p: 8, 
-    bgcolor: '#1E1E1E', 
-    color: 'white',
+    bgcolor: theme => theme.palette.background.default,
+    color: theme => theme.palette.text.primary,
     position: 'relative',
     minHeight: '100vh',
     display: 'flex',
