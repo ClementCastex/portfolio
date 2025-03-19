@@ -261,34 +261,34 @@ const ProjectDetails: React.FC = () => {
                 </Box>
               </Box>
 
-              {(project.websiteUrl || project.githubUrl) && (
-                <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
-                  {project.websiteUrl && (
-                    <Button
-                      variant="contained"
-                      startIcon={<Language />}
-                      onClick={() => window.open(project.websiteUrl, '_blank')}
-                      sx={{
-                        color: 'white',
-                        '&:hover': {
-                          color: 'white',
-                        }
-                      }}
-                    >
-                      Voir le site
-                    </Button>
-                  )}
-                  {project.githubUrl && (
-                    <Button
-                      variant="outlined"
-                      startIcon={<GitHub />}
-                      onClick={() => window.open(project.githubUrl, '_blank')}
-                    >
-                      Code source
-                    </Button>
-                  )}
-                </Box>
-              )}
+              <Box>
+                {(project.githubUrl || project.websiteUrl) && (
+                  <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
+                    {project.githubUrl && (
+                      <Button
+                        variant="contained"
+                        startIcon={<GitHub />}
+                        href={project.githubUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Voir sur GitHub
+                      </Button>
+                    )}
+                    {project.websiteUrl && (
+                      <Button
+                        variant="contained"
+                        startIcon={<Language />}
+                        href={project.websiteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Voir le site
+                      </Button>
+                    )}
+                  </Box>
+                )}
+              </Box>
 
               <Box sx={{ mb: 4 }}>
                 <Typography variant="h5" gutterBottom>
@@ -304,7 +304,7 @@ const ProjectDetails: React.FC = () => {
                   Description détaillée
                 </Typography>
                 <Typography paragraph>
-                  {project.longDescription}
+                  {project.description}
                 </Typography>
               </Box>
             </Box>

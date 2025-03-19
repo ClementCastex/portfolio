@@ -1,3 +1,5 @@
+import { SvgIconProps } from '@mui/material';
+
 export interface User {
   id: number;
   email: string;
@@ -10,15 +12,15 @@ export interface Project {
   id: number;
   title: string;
   shortDescription: string;
-  longDescription: string;
-  status: 'completed' | 'in_progress' | 'abandoned';
-  categories: string[];
+  description: string;
   images: string[];
-  websiteUrl?: string;
+  categories: string[];
+  status: string;
   githubUrl?: string;
+  websiteUrl?: string;
+  likes: number;
   createdAt: string;
   updatedAt: string;
-  likeTotal: number;
 }
 
 export interface Bookmark {
@@ -44,4 +46,25 @@ export interface BookmarkState {
   bookmarks: Bookmark[];
   loading: boolean;
   error: string | null;
+}
+
+export interface ProjectCardProps {
+  project: Project;
+  onLike?: (projectId: number) => void;
+  isLiked?: boolean;
+  isAdmin?: boolean;
+  onEdit?: (project: Project) => void;
+  onDelete?: (projectId: number) => void;
+}
+
+export interface SkillCardProps {
+  icon: React.ReactElement<SvgIconProps>;
+  title: string;
+  description: string;
+}
+
+export interface SocialButtonProps {
+  href: string;
+  icon: React.ReactElement;
+  ariaLabel?: string;
 } 
