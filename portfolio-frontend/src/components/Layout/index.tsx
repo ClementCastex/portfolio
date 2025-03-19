@@ -101,7 +101,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onToggleTheme, isDarkMode }) 
           height: '100vh',
           left: 0,
           top: 0,
-          borderRight: '2px solid #5B548B',
+          borderRight: '2px solid #5B348B',
           transition: 'width 0.3s ease, align-items 0.3s ease',
           zIndex: 1000
         }}

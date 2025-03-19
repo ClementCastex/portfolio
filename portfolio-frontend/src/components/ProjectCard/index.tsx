@@ -139,9 +139,11 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
             endIcon={<ArrowForwardIcon />}
             sx={{ 
               ml: 1,
-              borderWidth: 2,
+              borderWidth: 3,
+              borderColor: 'rgb(91, 52, 139)',
               '&:hover': {
-                borderWidth: 2
+                borderWidth: 3,
+                borderColor: 'rgb(116, 68, 175)',
               }
             }}
           >
