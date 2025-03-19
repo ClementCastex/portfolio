@@ -50,11 +50,12 @@ export interface BookmarkState {
 
 export interface ProjectCardProps {
   project: Project;
-  onLike?: (projectId: number) => void;
-  isLiked?: boolean;
+  onLikeToggle: (projectId: number) => void;
+  isLiked: boolean;
   isAdmin?: boolean;
   onEdit?: (project: Project) => void;
   onDelete?: (projectId: number) => void;
+  actionLoading?: number | null;
 }
 
 export interface SkillCardProps {

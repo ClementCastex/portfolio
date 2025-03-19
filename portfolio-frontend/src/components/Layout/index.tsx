@@ -31,6 +31,7 @@ import {
 import { RootState } from '../../store';
 import { logout } from '../../store/slices/authSlice';
 import { keyframes } from '@mui/system';
+import ScrollToTop from '../ScrollToTop';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -268,9 +269,9 @@ const Layout: React.FC<LayoutProps> = ({ children, onToggleTheme, isDarkMode }) 
       {/* Contenu principal */}
       <Box
         component="main"
-        sx={{
+        sx={{ 
           flexGrow: 1,
-          ml: isOpen ? '240px' : '80px',
+          ml: isOpen ? '240px' : '80px', 
           display: 'flex',
           flexDirection: 'column',
           transition: 'margin-left 0.3s ease',
@@ -281,6 +282,9 @@ const Layout: React.FC<LayoutProps> = ({ children, onToggleTheme, isDarkMode }) 
       >
         {children}
       </Box>
+      
+      {/* Bouton pour remonter en haut de la page */}
+      <ScrollToTop />
     </Box>
   );
 };
