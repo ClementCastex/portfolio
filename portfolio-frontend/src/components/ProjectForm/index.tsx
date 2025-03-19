@@ -50,6 +50,7 @@ interface ProjectFormProps {
   onClose: () => void;
   onSuccess: () => void;
   token: string;
+  existingTags?: string[];
   project?: {
     id?: number;
     title: string;
@@ -77,6 +78,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   onClose,
   onSuccess,
   token,
+  existingTags = [],
   project,
 }) => {
   const [formData, setFormData] = useState({
@@ -363,14 +365,50 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
                       Ajouter
                     </Button>
                   </Box>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {formData.categories.map((category, index) => (
-                      <Chip
-                        key={index}
-                        label={category}
-                        onDelete={() => handleDeleteCategory(category)}
-                      />
-                    ))}
+                  
+                  {/* Existing Tags Section */}
+                  {existingTags.length > 0 && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Tags existants
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        {existingTags
+                          .filter(tag => !formData.categories.includes(tag))
+                          .map((tag) => (
+                            <Chip
+                              key={tag}
+                              label={tag}
+                              onClick={() => {
+                                setFormData({
+                                  ...formData,
+                                  categories: [...formData.categories, tag],
+                                });
+                              }}
+                              variant="outlined"
+                              sx={{ cursor: 'pointer' }}
+                            />
+                          ))}
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* Selected Categories */}
+                  <Box>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Tags sélectionnés
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                      {formData.categories.map((category, index) => (
+                        <Chip
+                          key={index}
+                          label={category}
+                          onDelete={() => handleDeleteCategory(category)}
+                          color="primary"
+                          variant="filled"
+                        />
+                      ))}
+                    </Box>
                   </Box>
                 </Box>
 
