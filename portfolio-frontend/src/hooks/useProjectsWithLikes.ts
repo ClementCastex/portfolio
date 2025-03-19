@@ -25,6 +25,8 @@ interface UseProjectsWithLikesReturn {
   allTags: string[];
   isLiked: (projectId: number) => boolean;
   handleLikeToggle: (projectId: number) => Promise<void>;
+  showOnlyLiked: boolean;
+  setShowOnlyLiked: (show: boolean) => void;
 }
 
 export const useProjectsWithLikes = (): UseProjectsWithLikesReturn => {
@@ -40,6 +42,7 @@ export const useProjectsWithLikes = (): UseProjectsWithLikesReturn => {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [sortBy, setSortBy] = useState('date_desc');
   const [allTags, setAllTags] = useState<string[]>([]);
+  const [showOnlyLiked, setShowOnlyLiked] = useState(false);
 
   useEffect(() => {
     dispatch(fetchProjects() as any);
@@ -61,7 +64,8 @@ export const useProjectsWithLikes = (): UseProjectsWithLikesReturn => {
         project.shortDescription.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesTag = !selectedTag || project.categories.includes(selectedTag);
       const matchesStatus = !selectedStatus || project.status === selectedStatus;
-      return matchesSearch && matchesTag && matchesStatus;
+      const matchesLiked = !showOnlyLiked || isLiked(project.id);
+      return matchesSearch && matchesTag && matchesStatus && matchesLiked;
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -146,5 +150,7 @@ export const useProjectsWithLikes = (): UseProjectsWithLikesReturn => {
     allTags,
     isLiked,
     handleLikeToggle,
+    showOnlyLiked,
+    setShowOnlyLiked,
   };
 }; 
