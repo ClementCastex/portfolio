@@ -59,7 +59,7 @@ const Home: React.FC = () => {
             }}>
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <IconButton 
-                  href="https://github.com" 
+                  href="https://github.com/ClementCastex" 
                   target="_blank" 
                   sx={{ 
                     width: 60,
@@ -74,7 +74,7 @@ const Home: React.FC = () => {
                   <GitHubIcon sx={{ fontSize: 35 }} />
                 </IconButton>
                 <IconButton 
-                  href="https://linkedin.com" 
+                  href="https://www.linkedin.com/in/clément-castex/" 
                   target="_blank" 
                   sx={{ 
                     width: 60,
@@ -89,7 +89,7 @@ const Home: React.FC = () => {
                   <LinkedInIcon sx={{ fontSize: 35 }} />
                 </IconButton>
                 <IconButton 
-                  href="https://instagram.com" 
+                  href="https://www.instagram.com/clement_castex/" 
                   target="_blank" 
                   sx={{ 
                     width: 60,
@@ -104,7 +104,7 @@ const Home: React.FC = () => {
                   <InstagramIcon sx={{ fontSize: 35 }} />
                 </IconButton>
                 <IconButton 
-                  href="mailto:contact@example.com"
+                  href="mailto:ccastex@normandiewebschool.fr"
                   sx={{ 
                     width: 60,
                     height: 60,

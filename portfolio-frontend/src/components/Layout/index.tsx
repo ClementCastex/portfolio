@@ -230,8 +230,15 @@ const Layout: React.FC<LayoutProps> = ({ children, onToggleTheme, isDarkMode }) 
             onClick={() => setIsOpen(false)}
             sx={{ 
               color: theme => theme.palette.text.primary,
-              alignSelf: 'flex-end',
-              mr: 1
+              position: 'absolute',
+              right: '-12px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              backgroundColor: theme => theme.palette.background.paper,
+              border: '2px solid #5B548B',
+              '&:hover': {
+                backgroundColor: theme => theme.palette.action.hover,
+              }
             }}
           >
             <ChevronLeftIcon />
