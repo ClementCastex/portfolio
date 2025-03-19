@@ -352,7 +352,13 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
                     <Button
                       onClick={handleAddCategory}
                       variant="contained"
-                      sx={{ ml: 1 }}
+                      sx={{ 
+                        ml: 1,
+                        color: 'white',
+                        '&:hover': {
+                          color: 'white',
+                        }
+                      }}
                     >
                       Ajouter
                     </Button>
@@ -402,7 +408,13 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
                 variant="contained"
                 startIcon={<CloudUploadIcon />}
                 disabled={uploading}
-                sx={{ mb: 2 }}
+                sx={{ 
+                  mb: 2,
+                  color: 'white',
+                  '&:hover': {
+                    color: 'white',
+                  }
+                }}
               >
                 {uploading ? 'Envoi en cours...' : 'Ajouter des images'}
                 <input
@@ -445,8 +457,17 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>Annuler</Button>
-          <Button type="submit" variant="contained">
+          <Button onClick={onClose} sx={{ color: theme => theme.palette.text.primary }}>Annuler</Button>
+          <Button 
+            type="submit" 
+            variant="contained"
+            sx={{
+              color: 'white',
+              '&:hover': {
+                color: 'white',
+              }
+            }}
+          >
             {isImageOnlyMode ? 'Sauvegarder les images' : (project?.id ? 'Modifier' : 'Créer')}
           </Button>
         </DialogActions>

@@ -277,6 +277,12 @@ const ProjectDetails: React.FC = () => {
                       variant="contained"
                       startIcon={<Language />}
                       onClick={() => window.open(project.websiteUrl, '_blank')}
+                      sx={{
+                        color: 'white',
+                        '&:hover': {
+                          color: 'white',
+                        }
+                      }}
                     >
                       Voir le site
                     </Button>
