@@ -19,8 +19,9 @@ import {
   Typography,
   Alert,
 } from '@mui/material';
-import { Delete as DeleteIcon, CloudUpload as CloudUploadIcon } from '@mui/icons-material';
+import { Delete as DeleteIcon, CloudUpload as CloudUploadIcon, Close as CloseIcon } from '@mui/icons-material';
 import { API_ENDPOINTS, API_BASE_URL } from '../../config/api';
+import { Project } from '../../types';
 
 const textFieldStyle = {
   '& .MuiOutlinedInput-root': {
@@ -51,18 +52,23 @@ interface ProjectFormProps {
   onSuccess: () => void;
   token: string;
   existingTags?: string[];
-  project?: {
-    id?: number;
-    title: string;
-    shortDescription: string;
-    longDescription: string;
-    status: string;
-    categories: string[];
-    images: string[];
-    websiteUrl?: string;
-    githubUrl?: string;
-  };
+  project?: Project;
 }
+
+const initialFormData: Project = {
+  id: 0,
+  title: '',
+  shortDescription: '',
+  description: '',
+  status: 'IN_PROGRESS',
+  categories: [],
+  images: [],
+  githubUrl: '',
+  websiteUrl: '',
+  likes: 0,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+};
 
 const getFullImageUrl = (imagePath: string) => {
   // Si l'image est une URL complète ou une URL de données (preview), la retourner telle quelle
@@ -81,17 +87,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   existingTags = [],
   project,
 }) => {
-  const [formData, setFormData] = useState({
-    title: project?.title || '',
-    shortDescription: project?.shortDescription || '',
-    longDescription: project?.longDescription || '',
-    status: project?.status || 'in_progress',
-    categories: project?.categories || [],
-    websiteUrl: project?.websiteUrl || '',
-    githubUrl: project?.githubUrl || '',
-  });
+  const [formData, setFormData] = useState<Project>(initialFormData);
 
-  const [images, setImages] = useState<string[]>(project?.images || []);
   const [newCategory, setNewCategory] = useState('');
   const [uploading, setUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -99,16 +96,9 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
 
   useEffect(() => {
     if (project) {
-      setFormData({
-        title: project.title,
-        shortDescription: project.shortDescription,
-        longDescription: project.longDescription,
-        status: project.status,
-        categories: project.categories,
-        websiteUrl: project.websiteUrl || '',
-        githubUrl: project.githubUrl || '',
-      });
-      setImages(project.images);
+      setFormData(project);
+    } else {
+      setFormData(initialFormData);
     }
   }, [project]);
 
@@ -119,9 +109,9 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
       if (project?.id && isImageOnlyMode) {
         // Si on est en mode image uniquement, on ne met à jour que les images
         if (selectedFiles.length > 0) {
-          const formData = new FormData();
+          const imageFormData = new FormData();
           selectedFiles.forEach((file) => {
-            formData.append('images[]', file);
+            imageFormData.append('images[]', file);
           });
 
           const uploadResponse = await fetch(`${API_ENDPOINTS.PROJECTS}/${project.id}/images`, {
@@ -129,7 +119,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
             headers: {
               'Authorization': `Bearer ${token}`,
             },
-            body: formData,
+            body: imageFormData,
           });
 
           if (!uploadResponse.ok) {
@@ -148,27 +138,42 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
           },
-          body: JSON.stringify({ ...formData, images }),
+          body: JSON.stringify({ ...formData, images: formData.images }),
         });
 
         if (!response.ok) {
           throw new Error('Failed to save project');
         }
 
-        const savedProject = await response.json();
+        const data = await response.json();
+        setFormData({
+          ...formData,
+          images: data.images || [],
+          id: data.id || formData.id,
+          title: formData.title,
+          shortDescription: formData.shortDescription,
+          description: formData.description,
+          status: formData.status,
+          categories: formData.categories,
+          githubUrl: formData.githubUrl,
+          websiteUrl: formData.websiteUrl,
+          likes: formData.likes,
+          createdAt: formData.createdAt,
+          updatedAt: formData.updatedAt,
+        });
 
         if (selectedFiles.length > 0) {
-          const formData = new FormData();
+          const imageFormData = new FormData();
           selectedFiles.forEach((file) => {
-            formData.append('images[]', file);
+            imageFormData.append('images[]', file);
           });
 
-          const uploadResponse = await fetch(`${API_ENDPOINTS.PROJECTS}/${savedProject.id}/images`, {
+          const uploadResponse = await fetch(`${API_ENDPOINTS.PROJECTS}/${data.id}/images`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${token}`,
             },
-            body: formData,
+            body: imageFormData,
           });
 
           if (!uploadResponse.ok) {
@@ -208,9 +213,9 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
     if (project?.id) {
       // Si le projet existe déjà, uploader directement
       setUploading(true);
-      const formData = new FormData();
+      const imageFormData = new FormData();
       Array.from(files).forEach((file) => {
-        formData.append('images[]', file);
+        imageFormData.append('images[]', file);
       });
 
       try {
@@ -219,7 +224,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           headers: {
             'Authorization': `Bearer ${token}`,
           },
-          body: formData,
+          body: imageFormData,
         });
 
         if (!response.ok) {
@@ -227,7 +232,21 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
         }
 
         const data = await response.json();
-        setImages(data.images);
+        setFormData({
+          ...formData,
+          images: data.images || [],
+          id: data.id || formData.id,
+          title: formData.title,
+          shortDescription: formData.shortDescription,
+          description: formData.description,
+          status: formData.status,
+          categories: formData.categories,
+          githubUrl: formData.githubUrl,
+          websiteUrl: formData.websiteUrl,
+          likes: formData.likes,
+          createdAt: formData.createdAt,
+          updatedAt: formData.updatedAt,
+        });
       } catch (error) {
         console.error('Error uploading images:', error);
       } finally {
@@ -238,7 +257,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
       setSelectedFiles(Array.from(files));
       // Créer des URLs temporaires pour l'aperçu
       const newImages = Array.from(files).map(file => URL.createObjectURL(file));
-      setImages(prevImages => [...prevImages, ...newImages]);
+      setFormData({ ...formData, images: newImages });
     }
   };
 
@@ -257,17 +276,17 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           throw new Error('Failed to delete image');
         }
 
-        const newImages = [...images];
+        const newImages = [...formData.images];
         newImages.splice(index, 1);
-        setImages(newImages);
+        setFormData({ ...formData, images: newImages });
       } catch (error) {
         console.error('Error deleting image:', error);
       }
     } else {
       // Si nouveau projet, supprimer juste de la prévisualisation
-      const newImages = [...images];
+      const newImages = [...formData.images];
       newImages.splice(index, 1);
-      setImages(newImages);
+      setFormData({ ...formData, images: newImages });
       const newFiles = [...selectedFiles];
       newFiles.splice(index, 1);
       setSelectedFiles(newFiles);
@@ -276,19 +295,13 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h6">
-          {project?.id ? 'Modifier le projet' : 'Ajouter un projet'}
-        </Typography>
-        {project?.id && (
-          <Button
-            variant="outlined"
-            onClick={() => setIsImageOnlyMode(!isImageOnlyMode)}
-            sx={{ ml: 2 }}
-          >
-            {isImageOnlyMode ? 'Mode complet' : 'Gérer les images uniquement'}
-          </Button>
-        )}
+      <DialogTitle>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {project ? 'Modifier le projet' : 'Nouveau projet'}
+          <IconButton onClick={onClose} size="small">
+            <CloseIcon />
+          </IconButton>
+        </Box>
       </DialogTitle>
       <form onSubmit={handleSubmit}>
         <DialogContent>
@@ -318,9 +331,9 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
                 <TextField
                   fullWidth
                   required
-                  label="Description longue"
-                  value={formData.longDescription}
-                  onChange={(e) => setFormData({ ...formData, longDescription: e.target.value })}
+                  label="Description complète"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   multiline
                   rows={4}
                   sx={textFieldStyle}
@@ -328,16 +341,16 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
                 />
 
                 <FormControl fullWidth margin="normal" sx={textFieldStyle}>
-                  <InputLabel id="status-label">Statut</InputLabel>
+                  <InputLabel id="status-label">Status</InputLabel>
                   <Select
                     labelId="status-label"
                     value={formData.status}
-                    label="Statut"
+                    label="Status"
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                   >
-                    <MenuItem value="in_progress">En cours</MenuItem>
-                    <MenuItem value="completed">Terminé</MenuItem>
-                    <MenuItem value="abandoned">Abandonné</MenuItem>
+                    <MenuItem value="IN_PROGRESS">En cours</MenuItem>
+                    <MenuItem value="COMPLETED">Terminé</MenuItem>
+                    <MenuItem value="ABANDONED">Abandonné</MenuItem>
                   </Select>
                 </FormControl>
 
@@ -414,18 +427,18 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
 
                 <TextField
                   fullWidth
-                  label="URL du site"
-                  value={formData.websiteUrl}
-                  onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
+                  label="Lien GitHub"
+                  value={formData.githubUrl}
+                  onChange={(e) => setFormData({ ...formData, githubUrl: e.target.value })}
                   sx={textFieldStyle}
                   margin="normal"
                 />
 
                 <TextField
                   fullWidth
-                  label="URL GitHub"
-                  value={formData.githubUrl}
-                  onChange={(e) => setFormData({ ...formData, githubUrl: e.target.value })}
+                  label="Lien Demo"
+                  value={formData.websiteUrl}
+                  onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
                   sx={textFieldStyle}
                   margin="normal"
                 />
@@ -463,9 +476,9 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
                   onChange={handleFileSelect}
                 />
               </Button>
-              {images.length > 0 && (
+              {formData.images.length > 0 && (
                 <ImageList cols={3} rowHeight={200} sx={{ mb: 2 }}>
-                  {images.map((image, index) => (
+                  {formData.images.map((image, index) => (
                     <ImageListItem key={index} sx={{ position: 'relative' }}>
                       <img
                         src={getFullImageUrl(image)}
@@ -506,7 +519,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
               }
             }}
           >
-            {isImageOnlyMode ? 'Sauvegarder les images' : (project?.id ? 'Modifier' : 'Créer')}
+            {project ? 'Modifier' : 'Créer'}
           </Button>
         </DialogActions>
       </form>

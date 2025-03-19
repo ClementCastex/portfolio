@@ -26,6 +26,7 @@ import {
   FormControl,
   InputLabel,
   Select,
+  useTheme,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -43,6 +44,7 @@ import {
 import { Project } from '../../types';
 import ProjectForm from '../../components/ProjectForm';
 import { API_BASE_URL } from '../../config/api';
+import { darkInputStyle, lightInputStyle, commonButtonStyle } from '../../theme/styles';
 
 const getFullImageUrl = (imagePath: string) => {
   if (imagePath.startsWith('http') || imagePath.startsWith('blob:') || imagePath.startsWith('data:')) {
@@ -51,20 +53,25 @@ const getFullImageUrl = (imagePath: string) => {
   return `${API_BASE_URL}${imagePath}`;
 };
 
+type SortOption = 'title_asc' | 'title_desc' | 'likes_asc' | 'likes_desc' | 'date_asc' | 'date_desc';
+
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { projects, loading, error } = useSelector((state: RootState) => state.projects);
   const { user, token } = useSelector((state: RootState) => state.auth);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   
   // Nouveaux états pour les filtres
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [sortBy, setSortBy] = useState<string>('date_desc');
+  const [sortBy, setSortBy] = useState<SortOption>('date_desc');
   const [allTags, setAllTags] = useState<string[]>([]);
+
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
 
   const textFieldStyle = {
     '& .MuiOutlinedInput-root': {
@@ -104,19 +111,15 @@ const AdminDashboard: React.FC = () => {
     }
   }, [dispatch, token, user, navigate]);
 
-  const handleOpenForm = (project?: Project) => {
-    setEditingProject(project || null);
+  const handleEdit = (project: Project) => {
+    setSelectedProject(project);
     setIsFormOpen(true);
   };
 
-  const handleCloseForm = () => {
-    setIsFormOpen(false);
-    setEditingProject(null);
-  };
-
-  const handleDeleteProject = (projectId: number) => {
+  const handleDelete = async (projectId: number) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')) {
-      dispatch(deleteProject(projectId) as any);
+      await dispatch(deleteProject(projectId) as any);
+      dispatch(fetchProjects() as any);
     }
   };
 
@@ -156,16 +159,22 @@ const AdminDashboard: React.FC = () => {
         case 'title_desc':
           return b.title.localeCompare(a.title);
         case 'likes_asc':
-          return a.likeTotal - b.likeTotal;
+          return a.likes - b.likes;
         case 'likes_desc':
-          return b.likeTotal - a.likeTotal;
+          return b.likes - a.likes;
         case 'date_asc':
           return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
         case 'date_desc':
-        default:
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        default:
+          return 0;
       }
     });
+
+  const totalLikes = projects.reduce((sum, project) => sum + (project.likes || 0), 0);
+  const totalProjects = projects.length;
+  const completedProjects = projects.filter(p => p.status === 'completed').length;
+  const inProgressProjects = projects.filter(p => p.status === 'in_progress').length;
 
   if (!token || !user?.roles?.includes('ROLE_ADMIN')) {
     return (
@@ -202,13 +211,11 @@ const AdminDashboard: React.FC = () => {
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={() => handleOpenForm()}
-          sx={{
-            color: 'white',
-            '&:hover': {
-              color: 'white',
-            }
+          onClick={() => {
+            setSelectedProject(null);
+            setIsFormOpen(true);
           }}
+          sx={commonButtonStyle}
         >
           Ajouter un projet
         </Button>
@@ -219,25 +226,25 @@ const AdminDashboard: React.FC = () => {
         <Grid item xs={12} sm={6} md={3}>
           <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <Typography variant="h6" color="text.secondary">Total Projets</Typography>
-            <Typography variant="h4">{projects.length}</Typography>
+            <Typography variant="h4">{totalProjects}</Typography>
           </Paper>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <Typography variant="h6" color="text.secondary">Total Likes</Typography>
-            <Typography variant="h4">{projects.reduce((sum, project) => sum + project.likeTotal, 0)}</Typography>
+            <Typography variant="h4">{totalLikes}</Typography>
           </Paper>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <Typography variant="h6" color="text.secondary">Projets Terminés</Typography>
-            <Typography variant="h4">{projects.filter(p => p.status === 'completed').length}</Typography>
+            <Typography variant="h4">{completedProjects}</Typography>
           </Paper>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <Typography variant="h6" color="text.secondary">En Cours</Typography>
-            <Typography variant="h4">{projects.filter(p => p.status === 'in_progress').length}</Typography>
+            <Typography variant="h4">{inProgressProjects}</Typography>
           </Paper>
         </Grid>
       </Grid>
@@ -252,13 +259,13 @@ const AdminDashboard: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             InputProps={{
-              startAdornment: <SearchIcon color="action" sx={{ color: '#F7F3F7', mr: 1 }} />,
+              startAdornment: <SearchIcon color="action" sx={{ color: isDarkMode ? '#F7F3F7' : '#23272A', mr: 1 }} />,
             }}
-            sx={textFieldStyle}
+            sx={isDarkMode ? darkInputStyle : lightInputStyle}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <FormControl fullWidth sx={textFieldStyle}>
+          <FormControl fullWidth sx={isDarkMode ? darkInputStyle : lightInputStyle}>
             <InputLabel>Statut</InputLabel>
             <Select
               value={selectedStatus}
@@ -273,7 +280,7 @@ const AdminDashboard: React.FC = () => {
           </FormControl>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <FormControl fullWidth sx={textFieldStyle}>
+          <FormControl fullWidth sx={isDarkMode ? darkInputStyle : lightInputStyle}>
             <InputLabel>Catégorie</InputLabel>
             <Select
               value={selectedCategory}
@@ -288,12 +295,12 @@ const AdminDashboard: React.FC = () => {
           </FormControl>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <FormControl fullWidth sx={textFieldStyle}>
+          <FormControl fullWidth sx={isDarkMode ? darkInputStyle : lightInputStyle}>
             <InputLabel>Trier par</InputLabel>
             <Select
               value={sortBy}
               label="Trier par"
-              onChange={(e) => setSortBy(e.target.value)}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
             >
               <MenuItem value="date_desc">Date (Plus récent)</MenuItem>
               <MenuItem value="date_asc">Date (Plus ancien)</MenuItem>
@@ -363,29 +370,29 @@ const AdminDashboard: React.FC = () => {
                     />
                   ))}
                 </TableCell>
-                <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      {project.likeTotal}
-                    </Typography>
+                <TableCell align="center">
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                    <Typography variant="body2">{project.likes || 0}</Typography>
                     <FavoriteIcon fontSize="small" color="primary" />
                   </Box>
                 </TableCell>
-                <TableCell>
-                  <IconButton
-                    onClick={() => handleOpenForm(project)}
-                    size="small"
-                    sx={{ mr: 1 }}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton
-                    onClick={() => handleDeleteProject(project.id)}
-                    size="small"
-                    color="error"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
+                <TableCell align="center">
+                  <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                    <IconButton 
+                      onClick={() => handleEdit(project)} 
+                      color="primary" 
+                      size="small"
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton 
+                      onClick={() => handleDelete(project.id)} 
+                      color="error" 
+                      size="small"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
                 </TableCell>
               </TableRow>
             ))}
@@ -393,17 +400,21 @@ const AdminDashboard: React.FC = () => {
         </Table>
       </TableContainer>
 
-      {token && (
+      {/* Project Form Dialog */}
+      {isFormOpen && (
         <ProjectForm
           open={isFormOpen}
-          onClose={handleCloseForm}
+          onClose={() => {
+            setIsFormOpen(false);
+            setSelectedProject(null);
+          }}
+          project={selectedProject || undefined}
           onSuccess={() => {
+            setIsFormOpen(false);
+            setSelectedProject(null);
             dispatch(fetchProjects() as any);
-            handleCloseForm();
           }}
           token={token}
-          project={editingProject || undefined}
-          existingTags={allTags}
         />
       )}
     </Container>

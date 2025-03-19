@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Button, Container, Grid, IconButton, Theme } from '@mui/material';
+import { Box, Typography, Button, Container, Grid } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
@@ -8,22 +8,37 @@ import EmailIcon from '@mui/icons-material/Email';
 import BrushIcon from '@mui/icons-material/Brush';
 import WebIcon from '@mui/icons-material/Web';
 import SchoolIcon from '@mui/icons-material/School';
-import { keyframes } from '@mui/system';
-
-const gradient = keyframes`
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-`;
+import GradientTitle from '../../components/GradientTitle';
+import SkillCard from '../../components/SkillCard';
+import SocialButton from '../../components/SocialButton';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+
+  const socialLinks = [
+    { href: "https://github.com/ClementCastex", icon: <GitHubIcon />, ariaLabel: "GitHub" },
+    { href: "https://www.linkedin.com/in/clément-castex/", icon: <LinkedInIcon />, ariaLabel: "LinkedIn" },
+    { href: "https://www.instagram.com/clement_castex/", icon: <InstagramIcon />, ariaLabel: "Instagram" },
+    { href: "mailto:ccastex@normandiewebschool.fr", icon: <EmailIcon />, ariaLabel: "Email" }
+  ];
+
+  const skills = [
+    {
+      icon: <WebIcon />,
+      title: "Développement Web",
+      description: "Création de sites web modernes et responsifs en utilisant les dernières technologies comme React et TypeScript."
+    },
+    {
+      icon: <BrushIcon />,
+      title: "Design Graphique",
+      description: "Création de designs numériques et illustrations sur Krita, alliant créativité et technique."
+    },
+    {
+      icon: <SchoolIcon />,
+      title: "Formation",
+      description: "Étudiant en Bachelor Chef de Projet Digital à la Normandie Web School, en constante évolution."
+    }
+  ];
 
   return (
     <Box sx={{ width: '100%', p: { xs: 2, md: 4 } }}>
@@ -40,9 +55,9 @@ const Home: React.FC = () => {
             <Typography variant="h4" sx={{ mb: 2 }}>
               Je suis Clément
             </Typography>
-            <Typography variant="h2" sx={{ color: theme => theme.palette.primary.main, mb: 3, fontWeight: 'bold' }}>
+            <GradientTitle>
               Étudiant dans le Développement Web
-            </Typography>
+            </GradientTitle>
             <Typography variant="body1" sx={{ mb: 4, maxWidth: '800px' }}>
               Actuellement en première année de la formation Chef de Projet Digital, je suis particulièrement
               attiré par la communication graphique. J'ai réalisé des dessins numériques sur Krita ainsi que
@@ -58,65 +73,14 @@ const Home: React.FC = () => {
               gap: 8
             }}>
               <Box sx={{ display: 'flex', gap: 2 }}>
-                <IconButton 
-                  href="https://github.com/ClementCastex" 
-                  target="_blank" 
-                  sx={{ 
-                    width: 60,
-                    height: 60,
-                    transition: 'transform 0.3s ease, color 0.3s ease',
-                    '&:hover': {
-                      transform: 'scale(1.1)',
-                      color: theme => theme.palette.secondary.main,
-                    }
-                  }}
-                >
-                  <GitHubIcon sx={{ fontSize: 35 }} />
-                </IconButton>
-                <IconButton 
-                  href="https://www.linkedin.com/in/clément-castex/" 
-                  target="_blank" 
-                  sx={{ 
-                    width: 60,
-                    height: 60,
-                    transition: 'transform 0.3s ease, color 0.3s ease',
-                    '&:hover': {
-                      transform: 'scale(1.1)',
-                      color: theme => theme.palette.secondary.main,
-                    }
-                  }}
-                >
-                  <LinkedInIcon sx={{ fontSize: 35 }} />
-                </IconButton>
-                <IconButton 
-                  href="https://www.instagram.com/clement_castex/" 
-                  target="_blank" 
-                  sx={{ 
-                    width: 60,
-                    height: 60,
-                    transition: 'transform 0.3s ease, color 0.3s ease',
-                    '&:hover': {
-                      transform: 'scale(1.1)',
-                      color: theme => theme.palette.secondary.main,
-                    }
-                  }}
-                >
-                  <InstagramIcon sx={{ fontSize: 35 }} />
-                </IconButton>
-                <IconButton 
-                  href="mailto:ccastex@normandiewebschool.fr"
-                  sx={{ 
-                    width: 60,
-                    height: 60,
-                    transition: 'transform 0.3s ease, color 0.3s ease',
-                    '&:hover': {
-                      transform: 'scale(1.1)',
-                      color: theme => theme.palette.secondary.main,
-                    }
-                  }}
-                >
-                  <EmailIcon sx={{ fontSize: 35 }} />
-                </IconButton>
+                {socialLinks.map((link, index) => (
+                  <SocialButton
+                    key={index}
+                    href={link.href}
+                    icon={link.icon}
+                    ariaLabel={link.ariaLabel}
+                  />
+                ))}
               </Box>
               <Button
                 variant="contained"
@@ -148,120 +112,17 @@ const Home: React.FC = () => {
         </Grid>
       </Box>
 
-      {/* Services Section */}
+      {/* Skills Section */}
       <Box sx={{ width: '100%', mb: 8 }}>
         <Typography variant="h2" align="center" sx={{ mb: 8, fontSize: { xs: '2.5rem', md: '3.5rem' } }}>
           Mes Compétences
         </Typography>
         <Grid container spacing={6}>
-          <Grid item xs={12} md={4}>
-            <Box sx={{
-              p: 6,
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              textAlign: 'center',
-              backgroundColor: theme => `${theme.palette.primary.main}15`,
-              borderRadius: 4,
-              backdropFilter: 'blur(10px)',
-              transition: 'all 0.3s ease',
-              border: theme => `1px solid ${theme.palette.primary.main}40`,
-              '&:hover': {
-                transform: 'translateY(-10px)',
-                backgroundColor: theme => `${theme.palette.primary.main}25`,
-                border: theme => `1px solid ${theme.palette.primary.main}`,
-              }
-            }}>
-              <WebIcon sx={{ 
-                fontSize: 100, 
-                color: theme => theme.palette.primary.main, 
-                mb: 4,
-                transition: 'transform 0.3s ease',
-                '&:hover': {
-                  transform: 'rotate(10deg)'
-                }
-              }} />
-              <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }}>
-                Développement Web
-              </Typography>
-              <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-                Création de sites web modernes et responsifs en utilisant les dernières technologies comme React et TypeScript.
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Box sx={{
-              p: 6,
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              textAlign: 'center',
-              backgroundColor: theme => `${theme.palette.primary.main}15`,
-              borderRadius: 4,
-              backdropFilter: 'blur(10px)',
-              transition: 'all 0.3s ease',
-              border: theme => `1px solid ${theme.palette.primary.main}40`,
-              '&:hover': {
-                transform: 'translateY(-10px)',
-                backgroundColor: theme => `${theme.palette.primary.main}25`,
-                border: theme => `1px solid ${theme.palette.primary.main}`,
-              }
-            }}>
-              <BrushIcon sx={{ 
-                fontSize: 100, 
-                color: theme => theme.palette.primary.main, 
-                mb: 4,
-                transition: 'transform 0.3s ease',
-                '&:hover': {
-                  transform: 'rotate(10deg)'
-                }
-              }} />
-              <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }}>
-                Design Graphique
-              </Typography>
-              <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-                Création de designs numériques et illustrations sur Krita, alliant créativité et technique.
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Box sx={{
-              p: 6,
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              textAlign: 'center',
-              backgroundColor: theme => `${theme.palette.primary.main}15`,
-              borderRadius: 4,
-              backdropFilter: 'blur(10px)',
-              transition: 'all 0.3s ease',
-              border: theme => `1px solid ${theme.palette.primary.main}40`,
-              '&:hover': {
-                transform: 'translateY(-10px)',
-                backgroundColor: theme => `${theme.palette.primary.main}25`,
-                border: theme => `1px solid ${theme.palette.primary.main}`,
-              }
-            }}>
-              <SchoolIcon sx={{ 
-                fontSize: 100, 
-                color: theme => theme.palette.primary.main, 
-                mb: 4,
-                transition: 'transform 0.3s ease',
-                '&:hover': {
-                  transform: 'rotate(10deg)'
-                }
-              }} />
-              <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }}>
-                Formation
-              </Typography>
-              <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-                Étudiant en Bachelor Chef de Projet Digital à la Normandie Web School, en constante évolution.
-              </Typography>
-            </Box>
-          </Grid>
+          {skills.map((skill, index) => (
+            <Grid item xs={12} md={4} key={index}>
+              <SkillCard {...skill} />
+            </Grid>
+          ))}
         </Grid>
       </Box>
     </Box>
