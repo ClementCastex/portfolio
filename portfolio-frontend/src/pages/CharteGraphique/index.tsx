@@ -38,8 +38,8 @@ const TitleSection: React.FC<{ title: string }> = ({ title }) => (
       minHeight: '100vh',
       display: 'flex',
       alignItems: 'center',
-      bgcolor: '#1E1E1E',
-      color: 'white',
+      bgcolor: theme => theme.palette.background.default,
+      color: theme => theme.palette.text.primary,
     }}
   >
     <Box
@@ -68,8 +68,8 @@ const TitleSection: React.FC<{ title: string }> = ({ title }) => (
 const ColorSection = () => (
   <Box sx={{ 
     p: 8, 
-    bgcolor: '#1E1E1E', 
-    color: 'white',
+    bgcolor: theme => theme.palette.background.default,
+    color: theme => theme.palette.text.primary,
     position: 'relative',
     minHeight: '100vh',
     display: 'flex',
@@ -215,8 +215,8 @@ const ColorSection = () => (
 const TypographySection = () => (
   <Box sx={{ 
     p: 8, 
-    bgcolor: '#1E1E1E', 
-    color: 'white',
+    bgcolor: theme => theme.palette.background.default,
+    color: theme => theme.palette.text.primary,
     position: 'relative',
     minHeight: '100vh',
     display: 'flex',
@@ -361,8 +361,8 @@ const TypographySection = () => (
 const StoryTellingSection = () => (
   <Box sx={{ 
     p: 8, 
-    bgcolor: '#1E1E1E', 
-    color: 'white',
+    bgcolor: theme => theme.palette.background.default,
+    color: theme => theme.palette.text.primary,
     position: 'relative',
     minHeight: '100vh',
     display: 'flex',
@@ -481,8 +481,8 @@ const StoryTellingSection = () => (
 const LogoSection = () => (
   <Box sx={{ 
     p: 8, 
-    bgcolor: '#1E1E1E', 
-    color: 'white',
+    bgcolor: theme => theme.palette.background.default,
+    color: theme => theme.palette.text.primary,
     position: 'relative',
     minHeight: '100vh',
     display: 'flex',
