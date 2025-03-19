@@ -241,4 +241,10 @@ class Project
         }
         return $this;
     }
+
+    #[Groups(['project:read'])]
+    public function getDescription(): ?string
+    {
+        return $this->longDescription;
+    }
 }

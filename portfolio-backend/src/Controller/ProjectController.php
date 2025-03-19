@@ -61,7 +61,11 @@ class ProjectController extends AbstractController
         // Set project properties from request data
         $project->setTitle($data['title']);
         $project->setShortDescription($data['shortDescription']);
-        $project->setLongDescription($data['longDescription']);
+        if (isset($data['longDescription'])) {
+            $project->setLongDescription($data['longDescription']);
+        } elseif (isset($data['description'])) {
+            $project->setLongDescription($data['description']);
+        }
         $project->setStatus($data['status']);
         $project->setCategories($data['categories']);
         if (isset($data['websiteUrl'])) {
@@ -100,6 +104,8 @@ class ProjectController extends AbstractController
         }
         if (isset($data['longDescription'])) {
             $project->setLongDescription($data['longDescription']);
+        } elseif (isset($data['description'])) {
+            $project->setLongDescription($data['description']);
         }
         if (isset($data['status'])) {
             $project->setStatus($data['status']);
