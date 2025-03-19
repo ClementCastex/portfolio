@@ -13,6 +13,7 @@ import {
   Grid,
   CircularProgress,
 } from '@mui/material';
+import { Theme } from '@mui/material/styles';
 import { Link as RouterLink } from 'react-router-dom';
 import { register, clearError } from '../../store/slices/authSlice';
 import { RootState } from '../../store';
@@ -20,23 +21,23 @@ import { RootState } from '../../store';
 const textFieldStyle = {
   '& .MuiOutlinedInput-root': {
     '& fieldset': {
-      borderColor: 'rgba(255, 255, 255, 0.23)',
+      borderColor: '#5B348B',
     },
     '&:hover fieldset': {
-      borderColor: 'rgba(255, 255, 255, 0.4)',
+      borderColor: '#5B348B',
     },
     '&.Mui-focused fieldset': {
-      borderColor: 'primary.main',
+      borderColor: '#5B348B',
     },
   },
   '& .MuiInputLabel-root': {
-    color: '#CCAA1D',
+    color: (theme: Theme) => theme.palette.text.primary,
     '&.Mui-focused': {
-      color: '#CCAA1D',
+      color: (theme: Theme) => theme.palette.text.primary,
     },
   },
   '& .MuiInputBase-input': {
-    color: '#CCAA1D',
+    color: (theme: Theme) => theme.palette.text.primary,
   },
 };
 

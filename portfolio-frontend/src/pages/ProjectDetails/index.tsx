@@ -25,10 +25,13 @@ import {
   ArrowBackIos,
   ArrowForwardIos,
   Close as CloseIcon,
+  Favorite as FavoriteIcon,
+  FavoriteBorder as FavoriteBorderIcon,
 } from '@mui/icons-material';
 import { RootState } from '../../store';
 import { fetchProjects } from '../../store/slices/projectSlice';
 import { API_BASE_URL } from '../../config/api';
+import { useProjectsWithLikes } from '../../hooks/useProjectsWithLikes';
 
 const getFullImageUrl = (imagePath: string) => {
   if (imagePath.startsWith('http') || imagePath.startsWith('blob:') || imagePath.startsWith('data:')) {
@@ -45,6 +48,7 @@ const ProjectDetails: React.FC = () => {
   const { token } = useSelector((state: RootState) => state.auth);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { isLiked, handleLikeToggle } = useProjectsWithLikes();
 
   useEffect(() => {
     dispatch(fetchProjects() as any);
@@ -113,23 +117,56 @@ const ProjectDetails: React.FC = () => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
-        <IconButton onClick={() => navigate('/projects')} sx={{ color: 'primary.main' }}>
-          <ArrowBack />
-        </IconButton>
-        <Typography variant="h4" component="h1">
-          {project.title}
-        </Typography>
-      </Box>
+      <Paper elevation={3} sx={{ p: 4, position: 'relative' }}>
+        {/* Header avec titre, bouton retour et like */}
+        <Box sx={{ 
+          mb: 4, 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between'
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <IconButton onClick={() => navigate('/projects')} sx={{ color: 'primary.main' }}>
+              <ArrowBack />
+            </IconButton>
+            <Typography variant="h4" component="h1">
+              {project.title}
+            </Typography>
+          </Box>
+          
+          {/* Bouton like et compteur */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="h6" sx={{ 
+              color: (theme) => theme.palette.mode === 'dark' ? '#CCAA1D' : 'inherit'
+            }}>
+              {project.likes || 0}
+            </Typography>
+            <IconButton
+              onClick={() => handleLikeToggle(project.id)}
+              sx={{
+                color: (theme) => theme.palette.mode === 'dark' ? '#CCAA1D' : (isLiked(project.id) ? 'primary.main' : 'inherit'),
+                '&:hover': {
+                  color: (theme) => theme.palette.mode === 'dark' ? '#CCAA1D' : 'primary.main',
+                },
+              }}
+            >
+              {isLiked(project.id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+            </IconButton>
+          </Box>
+        </Box>
 
-      <Paper elevation={3} sx={{ p: 4 }}>
         <Grid container spacing={4}>
           {/* Colonne de gauche pour les images */}
           <Grid item xs={12} md={6}>
             {project.images.length > 0 ? (
               <Box sx={{ position: 'relative' }}>
                 <Card 
-                  sx={{ width: '100%', cursor: 'pointer' }}
+                  sx={{ 
+                    width: '100%', 
+                    cursor: 'pointer',
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                  }}
                   onClick={() => setIsModalOpen(true)}
                 >
                   <CardMedia
@@ -198,8 +235,9 @@ const ProjectDetails: React.FC = () => {
                       key={index} 
                       sx={{ 
                         minWidth: 100,
-                        border: currentImageIndex === index ? '2px solid #9370DB' : 'none',
+                        border: currentImageIndex === index ? '2px solid #5B348B' : 'none',
                         cursor: 'pointer',
+                        borderRadius: 1,
                       }}
                       onClick={() => setCurrentImageIndex(index)}
                     >
@@ -215,17 +253,15 @@ const ProjectDetails: React.FC = () => {
                 </Box>
               </Box>
             ) : (
-              <Box
-                sx={{
-                  height: 400,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  bgcolor: 'grey.100',
-                  borderRadius: 1,
-                }}
-              >
-                <Typography color="text.secondary">
+              <Box sx={{ 
+                height: 400, 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                bgcolor: 'rgba(0, 0, 0, 0.1)',
+                borderRadius: 2,
+              }}>
+                <Typography variant="h6" color="text.secondary">
                   Aucune image disponible
                 </Typography>
               </Box>
@@ -235,75 +271,95 @@ const ProjectDetails: React.FC = () => {
           {/* Colonne de droite pour les informations */}
           <Grid item xs={12} md={6}>
             <Box>
+              {/* Status et catégories */}
               <Box sx={{ mb: 4 }}>
-                <Typography variant="h5" gutterBottom>
-                  Statut
-                </Typography>
-                <Chip
-                  label={project.status.replace('_', ' ')}
-                  color={getStatusColor(project.status)}
-                  sx={{ mb: 2 }}
-                />
-              </Box>
-
-              <Box sx={{ mb: 4 }}>
-                <Typography variant="h5" gutterBottom>
-                  Catégories
-                </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+                  <Chip
+                    label={project.status === 'in_progress' ? 'En cours' : 
+                           project.status === 'completed' ? 'Terminé' : 'Abandonné'}
+                    color={getStatusColor(project.status.toLowerCase())}
+                  />
                   {project.categories.map((category, index) => (
                     <Chip
                       key={index}
                       label={category}
                       variant="outlined"
+                      sx={{ borderColor: '#5B348B', color: 'text.primary' }}
                     />
                   ))}
                 </Box>
               </Box>
 
-              <Box>
-                {(project.githubUrl || project.websiteUrl) && (
-                  <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
-                    {project.githubUrl && (
-                      <Button
-                        variant="contained"
-                        startIcon={<GitHub />}
-                        href={project.githubUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Voir sur GitHub
-                      </Button>
-                    )}
-                    {project.websiteUrl && (
-                      <Button
-                        variant="contained"
-                        startIcon={<Language />}
-                        href={project.websiteUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Voir le site
-                      </Button>
-                    )}
-                  </Box>
-                )}
+              {/* Liens */}
+              <Box sx={{ mb: 4 }}>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  {project.githubUrl && (
+                    <Button
+                      variant="contained"
+                      startIcon={<GitHub />}
+                      href={project.githubUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{ 
+                        color: 'white',
+                        '&:hover': {
+                          color: 'white',
+                        }
+                      }}
+                    >
+                      GitHub
+                    </Button>
+                  )}
+                  {project.websiteUrl && (
+                    <Button
+                      variant="contained"
+                      startIcon={<Language />}
+                      href={project.websiteUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{ 
+                        color: 'white',
+                        '&:hover': {
+                          color: 'white',
+                        }
+                      }}
+                    >
+                      Demo
+                    </Button>
+                  )}
+                </Box>
               </Box>
 
+              {/* Description courte */}
               <Box sx={{ mb: 4 }}>
-                <Typography variant="h5" gutterBottom>
+                <Typography variant="h5" gutterBottom sx={{ 
+                  color: (theme) => theme.palette.mode === 'dark' 
+                    ? '#CCAA1D' 
+                    : 'primary.main'
+                }}>
                   Description courte
                 </Typography>
-                <Typography paragraph>
+                <Typography paragraph sx={{ color: 'text.primary' }}>
                   {project.shortDescription}
                 </Typography>
               </Box>
 
+              {/* Description détaillée */}
               <Box>
-                <Typography variant="h5" gutterBottom>
+                <Typography variant="h5" gutterBottom sx={{ 
+                  color: (theme) => theme.palette.mode === 'dark' 
+                    ? '#CCAA1D' 
+                    : 'primary.main'
+                }}>
                   Description détaillée
                 </Typography>
-                <Typography paragraph>
+                <Typography 
+                  paragraph 
+                  sx={{ 
+                    color: 'text.primary',
+                    lineHeight: 1.8,
+                  }}
+                >
                   {project.description}
                 </Typography>
               </Box>
@@ -333,6 +389,7 @@ const ProjectDetails: React.FC = () => {
               color: 'white',
               bgcolor: 'rgba(0, 0, 0, 0.5)',
               '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.7)' },
+              zIndex: 1,
             }}
           >
             <CloseIcon />

@@ -3,13 +3,13 @@ import { Theme } from '@mui/material/styles';
 export const lightInputStyle = {
   '& .MuiOutlinedInput-root': {
     '& fieldset': {
-      borderColor: '#23272A',
+      borderColor: '#5B348B',
     },
     '&:hover fieldset': {
-      borderColor: '#23272A',
+      borderColor: '#5B348B',
     },
     '&.Mui-focused fieldset': {
-      borderColor: '#23272A',
+      borderColor: '#5B348B',
     },
   },
   '& .MuiInputLabel-root': {
@@ -29,13 +29,13 @@ export const lightInputStyle = {
 export const darkInputStyle = {
   '& .MuiOutlinedInput-root': {
     '& fieldset': {
-      borderColor: 'rgba(255, 255, 255, 0.23)',
+      borderColor: '#5B348B',
     },
     '&:hover fieldset': {
-      borderColor: 'rgba(255, 255, 255, 0.4)',
+      borderColor: '#5B348B',
     },
     '&.Mui-focused fieldset': {
-      borderColor: '#F7F3F7',
+      borderColor: '#5B348B',
     },
   },
   '& .MuiInputLabel-root': {
@@ -70,10 +70,10 @@ export const cardStyle = {
   borderRadius: 4,
   backdropFilter: 'blur(10px)',
   transition: 'all 0.3s ease',
-  border: (theme: Theme) => `1px solid ${theme.palette.primary.main}40`,
+  border: '1px solid #5B348B',
   '&:hover': {
     transform: 'translateY(-10px)',
     backgroundColor: (theme: Theme) => `${theme.palette.primary.main}25`,
-    border: (theme: Theme) => `1px solid ${theme.palette.primary.main}`,
+    border: '1px solid #5B348B',
   },
 }; 

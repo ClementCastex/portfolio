@@ -9,20 +9,28 @@ import {
   Button,
   CircularProgress,
   Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import { RootState } from '../../store';
-import { fetchProjects } from '../../store/slices/projectSlice';
+import { fetchProjects, deleteProject } from '../../store/slices/projectSlice';
 import ProjectCard from '../../components/ProjectCard';
 import ProjectFilters from '../../components/ProjectFilters';
 import ProjectForm from '../../components/ProjectForm';
 import { useProjectsWithLikes } from '../../hooks/useProjectsWithLikes';
+import { Project } from '../../types';
 
 const Projects: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user, token } = useSelector((state: RootState) => state.auth);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<number | null>(null);
   
   const {
     filteredProjects,
@@ -41,14 +49,27 @@ const Projects: React.FC = () => {
     handleLikeToggle,
   } = useProjectsWithLikes();
 
-  const handleEdit = (project: any) => {
-    // Fonction à implémenter si nécessaire
-    console.log('Edit project:', project);
+  const handleEdit = (project: Project) => {
+    setSelectedProject(project);
+    setIsFormOpen(true);
   };
 
   const handleDelete = (projectId: number) => {
-    // Fonction à implémenter si nécessaire
-    console.log('Delete project:', projectId);
+    setProjectToDelete(projectId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (projectToDelete) {
+      try {
+        await dispatch(deleteProject(projectToDelete) as any);
+        await dispatch(fetchProjects() as any);
+        setDeleteDialogOpen(false);
+        setProjectToDelete(null);
+      } catch (error) {
+        console.error('Error deleting project:', error);
+      }
+    }
   };
 
   if (error) {
@@ -79,7 +100,10 @@ const Projects: React.FC = () => {
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            onClick={() => setIsFormOpen(true)}
+            onClick={() => {
+              setSelectedProject(null);
+              setIsFormOpen(true);
+            }}
             sx={{
               color: 'white',
               '&:hover': {
@@ -120,18 +144,50 @@ const Projects: React.FC = () => {
         ))}
       </Grid>
 
+      {/* Formulaire d'édition/création */}
       {isFormOpen && token && (
         <ProjectForm
           open={isFormOpen}
-          onClose={() => setIsFormOpen(false)}
+          onClose={() => {
+            setIsFormOpen(false);
+            setSelectedProject(null);
+          }}
           onSuccess={() => {
             dispatch(fetchProjects() as any);
             setIsFormOpen(false);
+            setSelectedProject(null);
           }}
           token={token}
           existingTags={allTags}
+          project={selectedProject || undefined}
         />
       )}
+
+      {/* Dialog de confirmation de suppression */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
+        <DialogTitle>Confirmer la suppression</DialogTitle>
+        <DialogContent>
+          Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => setDeleteDialogOpen(false)}
+            sx={{ color: 'text.primary' }}
+          >
+            Annuler
+          </Button>
+          <Button 
+            onClick={confirmDelete} 
+            color="error" 
+            variant="contained"
+          >
+            Supprimer
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
