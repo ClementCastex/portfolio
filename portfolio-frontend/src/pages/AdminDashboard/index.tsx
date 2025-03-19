@@ -92,6 +92,9 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  // Get unique tags from all projects
+  const allTags = Array.from(new Set(projects.flatMap(project => project.categories)));
+
   if (!token || !user?.roles?.includes('ROLE_ADMIN')) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4 }}>
@@ -227,6 +230,7 @@ const AdminDashboard: React.FC = () => {
           }}
           token={token}
           project={editingProject || undefined}
+          existingTags={allTags}
         />
       )}
     </Container>
