@@ -23,7 +23,7 @@ class Bookmark
 
     #[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'bookmarks')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['bookmark:read'])]
+    #[Groups(['bookmark:read', 'project:read'])]
     private ?Project $project = null;
 
     #[ORM\Column]
