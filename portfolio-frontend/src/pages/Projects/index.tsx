@@ -16,13 +16,20 @@ import {
   CircularProgress,
   Alert,
   Tooltip,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Stack,
 } from '@mui/material';
 import { 
   GitHub, 
   Language, 
   Favorite as FavoriteIcon,
   FavoriteBorder as FavoriteBorderIcon,
-  Add as AddIcon 
+  Add as AddIcon,
+  Search as SearchIcon,
 } from '@mui/icons-material';
 import { RootState } from '../../store';
 import { fetchProjects } from '../../store/slices/projectSlice';
@@ -44,6 +51,9 @@ const Projects: React.FC = () => {
   const { bookmarks, loading: bookmarksLoading } = useSelector((state: RootState) => state.bookmarks);
   const { user, token } = useSelector((state: RootState) => state.auth);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTag, setSelectedTag] = useState<string>('');
+  const [sortBy, setSortBy] = useState<'date_asc' | 'date_desc' | 'likes_asc' | 'likes_desc'>('date_desc');
 
   useEffect(() => {
     dispatch(fetchProjects() as any);
@@ -51,6 +61,35 @@ const Projects: React.FC = () => {
       dispatch(fetchBookmarks() as any);
     }
   }, [dispatch, token]);
+
+  // Get unique tags from all projects
+  const allTags = Array.from(new Set(projects.flatMap(project => project.categories)));
+
+  // Filter and sort projects
+  const filteredProjects = projects
+    .filter(project => {
+      const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        project.shortDescription.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesTag = !selectedTag || project.categories.includes(selectedTag);
+      return matchesSearch && matchesTag;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'likes_asc':
+          const aLikesAsc = bookmarks.filter(b => b.project.id === a.id).length;
+          const bLikesAsc = bookmarks.filter(b => b.project.id === b.id).length;
+          return aLikesAsc - bLikesAsc;
+        case 'likes_desc':
+          const aLikesDesc = bookmarks.filter(b => b.project.id === a.id).length;
+          const bLikesDesc = bookmarks.filter(b => b.project.id === b.id).length;
+          return bLikesDesc - aLikesDesc;
+        case 'date_asc':
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case 'date_desc':
+        default:
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+    });
 
   const isLiked = (projectId: number) => {
     return bookmarks.some(bookmark => bookmark.project.id === projectId);
@@ -124,8 +163,58 @@ const Projects: React.FC = () => {
         )}
       </Box>
 
+      {/* Search and Filter Section */}
+      <Box sx={{ mb: 4 }}>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="Rechercher un projet..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              InputProps={{
+                startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+              }}
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <FormControl fullWidth>
+              <InputLabel>Filtrer par tag</InputLabel>
+              <Select
+                value={selectedTag}
+                label="Filtrer par tag"
+                onChange={(e) => setSelectedTag(e.target.value)}
+              >
+                <MenuItem value="">Tous les tags</MenuItem>
+                {allTags.map((tag) => (
+                  <MenuItem key={tag} value={tag}>
+                    {tag}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <FormControl fullWidth>
+              <InputLabel>Trier par</InputLabel>
+              <Select
+                value={sortBy}
+                label="Trier par"
+                onChange={(e) => setSortBy(e.target.value as 'date_asc' | 'date_desc' | 'likes_asc' | 'likes_desc')}
+              >
+                <MenuItem value="date_desc">Date de création (plus récent)</MenuItem>
+                <MenuItem value="date_asc">Date de création (plus ancien)</MenuItem>
+                <MenuItem value="likes_desc">Nombre de likes (plus populaire)</MenuItem>
+                <MenuItem value="likes_asc">Nombre de likes (moins populaire)</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
+      </Box>
+
       <Grid container spacing={4}>
-        {projects.map((project) => (
+        {filteredProjects.map((project) => (
           <Grid item key={project.id} xs={12} sm={6} md={4}>
             <Card
               sx={{
@@ -262,6 +351,7 @@ const Projects: React.FC = () => {
             setIsFormOpen(false);
           }}
           token={token}
+          existingTags={allTags}
         />
       )}
     </Container>
