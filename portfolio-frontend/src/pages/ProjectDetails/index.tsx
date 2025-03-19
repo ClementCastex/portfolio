@@ -47,22 +47,8 @@ const ProjectDetails: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    if (token) {
-      dispatch(fetchProjects() as any);
-    } else {
-      navigate('/login');
-    }
-  }, [dispatch, token, navigate]);
-
-  if (!token) {
-    return (
-      <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Alert severity="warning">
-          Veuillez vous connecter pour voir les détails du projet
-        </Alert>
-      </Container>
-    );
-  }
+    dispatch(fetchProjects() as any);
+  }, [dispatch]);
 
   if (error) {
     return (
@@ -118,27 +104,23 @@ const ProjectDetails: React.FC = () => {
   };
 
   const handlePrevImage = () => {
-    setCurrentImageIndex((prev) => 
-      prev === 0 ? project.images.length - 1 : prev - 1
-    );
+    setCurrentImageIndex((prev) => (prev === 0 ? project.images.length - 1 : prev - 1));
   };
 
   const handleNextImage = () => {
-    setCurrentImageIndex((prev) => 
-      prev === project.images.length - 1 ? 0 : prev + 1
-    );
+    setCurrentImageIndex((prev) => (prev === project.images.length - 1 ? 0 : prev + 1));
   };
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Button
-        variant="outlined"
-        startIcon={<ArrowBack />}
-        onClick={() => navigate('/projects')}
-        sx={{ mb: 3 }}
-      >
-        Retour aux projets
-      </Button>
+      <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
+        <IconButton onClick={() => navigate('/projects')} sx={{ color: 'primary.main' }}>
+          <ArrowBack />
+        </IconButton>
+        <Typography variant="h4" component="h1">
+          {project.title}
+        </Typography>
+      </Box>
 
       <Paper elevation={3} sx={{ p: 4 }}>
         <Grid container spacing={4}>
@@ -233,16 +215,17 @@ const ProjectDetails: React.FC = () => {
                 </Box>
               </Box>
             ) : (
-              <Box 
-                sx={{ 
-                  height: 400, 
-                  backgroundColor: 'rgba(0,0,0,0.1)', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center' 
+              <Box
+                sx={{
+                  height: 400,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  bgcolor: 'grey.100',
+                  borderRadius: 1,
                 }}
               >
-                <Typography variant="h6" color="text.secondary">
+                <Typography color="text.secondary">
                   Aucune image disponible
                 </Typography>
               </Box>
@@ -251,23 +234,31 @@ const ProjectDetails: React.FC = () => {
 
           {/* Colonne de droite pour les informations */}
           <Grid item xs={12} md={6}>
-            <Box sx={{ height: '100%' }}>
-              <Typography variant="h3" gutterBottom>
-                {project.title}
-              </Typography>
-              
-              <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+            <Box>
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="h5" gutterBottom>
+                  Statut
+                </Typography>
                 <Chip
                   label={project.status.replace('_', ' ')}
                   color={getStatusColor(project.status)}
+                  sx={{ mb: 2 }}
                 />
-                {project.categories.map((category, index) => (
-                  <Chip
-                    key={index}
-                    label={category}
-                    variant="outlined"
-                  />
-                ))}
+              </Box>
+
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="h5" gutterBottom>
+                  Catégories
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {project.categories.map((category, index) => (
+                    <Chip
+                      key={index}
+                      label={category}
+                      variant="outlined"
+                    />
+                  ))}
+                </Box>
               </Box>
 
               {(project.websiteUrl || project.githubUrl) && (
@@ -329,9 +320,7 @@ const ProjectDetails: React.FC = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          '& .MuiBackdrop-root': {
-            backgroundColor: 'rgba(0, 0, 0, 0.9)',
-          },
+          bgcolor: 'rgba(0, 0, 0, 0.9)',
         }}
       >
         <Box sx={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}>
@@ -339,14 +328,15 @@ const ProjectDetails: React.FC = () => {
             onClick={() => setIsModalOpen(false)}
             sx={{
               position: 'absolute',
-              right: -40,
-              top: -40,
+              right: 8,
+              top: 8,
               color: 'white',
+              bgcolor: 'rgba(0, 0, 0, 0.5)',
+              '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.7)' },
             }}
           >
             <CloseIcon />
           </IconButton>
-          
           <img
             src={getFullImageUrl(project.images[currentImageIndex])}
             alt={`${project.title} - Image ${currentImageIndex + 1}`}
@@ -356,35 +346,6 @@ const ProjectDetails: React.FC = () => {
               objectFit: 'contain',
             }}
           />
-          
-          {project.images.length > 1 && (
-            <>
-              <IconButton
-                onClick={handlePrevImage}
-                sx={{
-                  position: 'absolute',
-                  left: -60,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: 'white',
-                }}
-              >
-                <ArrowBackIos />
-              </IconButton>
-              <IconButton
-                onClick={handleNextImage}
-                sx={{
-                  position: 'absolute',
-                  right: -60,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: 'white',
-                }}
-              >
-                <ArrowForwardIos />
-              </IconButton>
-            </>
-          )}
         </Box>
       </Modal>
     </Container>

@@ -1,5 +1,13 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { BookmarkState, Bookmark } from '../../types';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { BookmarkState, Bookmark, Project } from '../../types';
+import { API_BASE_URL } from '../../config/api';
+
+interface BookmarkResponse {
+  id: number;
+  project: Project;
+  totalLikes: number;
+  action: 'added' | 'removed';
+}
 
 const initialState: BookmarkState = {
   bookmarks: [],
@@ -9,61 +17,76 @@ const initialState: BookmarkState = {
 
 export const fetchBookmarks = createAsyncThunk(
   'bookmarks/fetchBookmarks',
-  async (_, { getState }: any) => {
-    const { auth } = getState();
-    const response = await fetch('http://localhost:8000/api/bookmarks', {
-      headers: {
-        'Authorization': `Bearer ${auth.token}`,
-      },
-    });
+  async (_, { getState, rejectWithValue }: any) => {
+    try {
+      const { auth } = getState();
+      const response = await fetch(`${API_BASE_URL}/api/bookmarks`, {
+        headers: {
+          'Authorization': `Bearer ${auth.token}`,
+        },
+      });
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch bookmarks');
+      if (!response.ok) {
+        const error = await response.json();
+        return rejectWithValue(error.message || 'Failed to fetch bookmarks');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Failed to fetch bookmarks');
     }
-
-    const data = await response.json();
-    return data;
   }
 );
 
-export const addBookmark = createAsyncThunk(
+export const addBookmark = createAsyncThunk<BookmarkResponse, number>(
   'bookmarks/addBookmark',
-  async (projectId: number, { getState }: any) => {
-    const { auth } = getState();
-    const response = await fetch('http://localhost:8000/api/bookmarks', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${auth.token}`,
-      },
-      body: JSON.stringify({ projectId }),
-    });
+  async (projectId: number, { getState, rejectWithValue }: any) => {
+    try {
+      const { auth } = getState();
+      const response = await fetch(`${API_BASE_URL}/api/bookmarks/project/${projectId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${auth.token}`,
+        },
+      });
 
-    if (!response.ok) {
-      throw new Error('Failed to add bookmark');
+      if (!response.ok) {
+        const error = await response.json();
+        return rejectWithValue(error.message || 'Failed to add bookmark');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Failed to add bookmark');
     }
-
-    const data = await response.json();
-    return data;
   }
 );
 
-export const removeBookmark = createAsyncThunk(
+export const removeBookmark = createAsyncThunk<BookmarkResponse, number>(
   'bookmarks/removeBookmark',
-  async (bookmarkId: number, { getState }: any) => {
-    const { auth } = getState();
-    const response = await fetch(`http://localhost:8000/api/bookmarks/${bookmarkId}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${auth.token}`,
-      },
-    });
+  async (bookmarkId: number, { getState, rejectWithValue }: any) => {
+    try {
+      const { auth } = getState();
+      const response = await fetch(`${API_BASE_URL}/api/bookmarks/${bookmarkId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${auth.token}`,
+        },
+      });
 
-    if (!response.ok) {
-      throw new Error('Failed to remove bookmark');
+      if (!response.ok) {
+        const error = await response.json();
+        return rejectWithValue(error.message || 'Failed to remove bookmark');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Failed to remove bookmark');
     }
-
-    return bookmarkId;
   }
 );
 
@@ -77,19 +100,28 @@ const bookmarkSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchBookmarks.fulfilled, (state, action: PayloadAction<Bookmark[]>) => {
+      .addCase(fetchBookmarks.fulfilled, (state, action) => {
         state.loading = false;
         state.bookmarks = action.payload;
+        state.error = null;
       })
       .addCase(fetchBookmarks.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch bookmarks';
       })
-      .addCase(addBookmark.fulfilled, (state, action: PayloadAction<Bookmark>) => {
-        state.bookmarks.push(action.payload);
+      .addCase(addBookmark.fulfilled, (state, action) => {
+        if (action.payload.action === 'added') {
+          state.bookmarks.push({
+            id: action.payload.id,
+            project: action.payload.project,
+            createdAt: new Date().toISOString()
+          });
+        }
       })
-      .addCase(removeBookmark.fulfilled, (state, action: PayloadAction<number>) => {
-        state.bookmarks = state.bookmarks.filter(b => b.id !== action.payload);
+      .addCase(removeBookmark.fulfilled, (state, action) => {
+        if (action.payload.action === 'removed') {
+          state.bookmarks = state.bookmarks.filter(b => b.id !== action.payload.id);
+        }
       });
   },
 });

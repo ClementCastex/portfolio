@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { ProjectState, Project } from '../../types';
 import { API_ENDPOINTS } from '../../config/api';
+import { API_BASE_URL } from '../../config/api';
 
 const initialState: ProjectState = {
   projects: [],
@@ -11,17 +12,11 @@ const initialState: ProjectState = {
 export const fetchProjects = createAsyncThunk(
   'projects/fetchProjects',
   async () => {
-    const response = await fetch(API_ENDPOINTS.PROJECTS, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    
+    const response = await fetch(`${API_BASE_URL}/api/projects`);
     if (!response.ok) {
       throw new Error('Failed to fetch projects');
     }
-    const data = await response.json();
-    return data;
+    return response.json();
   }
 );
 
@@ -91,16 +86,25 @@ export const deleteProject = createAsyncThunk(
 const projectSlice = createSlice({
   name: 'projects',
   initialState,
-  reducers: {},
+  reducers: {
+    updateProjectLikes: (state, action) => {
+      const { projectId, likeTotal } = action.payload;
+      const project = state.projects.find(p => p.id === projectId);
+      if (project) {
+        project.likeTotal = likeTotal;
+      }
+    }
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchProjects.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchProjects.fulfilled, (state, action: PayloadAction<Project[]>) => {
+      .addCase(fetchProjects.fulfilled, (state, action) => {
         state.loading = false;
         state.projects = action.payload;
+        state.error = null;
       })
       .addCase(fetchProjects.rejected, (state, action) => {
         state.loading = false;
@@ -121,4 +125,5 @@ const projectSlice = createSlice({
   },
 });
 
+export const { updateProjectLikes } = projectSlice.actions;
 export default projectSlice.reducer; 
