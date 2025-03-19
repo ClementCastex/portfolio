@@ -20,6 +20,7 @@ import {
   Avatar,
   AvatarGroup,
   useTheme,
+  CircularProgress,
 } from '@mui/material';
 import {
   Favorite as FavoriteIcon,
@@ -34,6 +35,7 @@ import {
 } from '@mui/icons-material';
 import { ProjectCardProps } from '../../types';
 import { getFullImageUrl } from '../../utils/imageUtils';
+import SocialShare from '../SocialShare';
 
 const getStatusColor = (status: string): "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
   switch (status.toUpperCase()) {
@@ -63,11 +65,12 @@ const getStatusLabel = (status: string): string => {
 
 const ProjectCard: React.FC<ProjectCardProps> = ({
   project,
-  onLike,
-  isLiked = false,
+  onLikeToggle,
+  isLiked,
   isAdmin = false,
   onEdit,
   onDelete,
+  actionLoading,
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -82,8 +85,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
   const handleLikeClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (onLike) {
-      onLike(project.id);
+    if (onLikeToggle) {
+      onLikeToggle(project.id);
     }
   };
 
@@ -273,85 +276,128 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
       <Divider sx={{ mt: 'auto', mx: 2 }} />
 
       {/* Actions */}
-      <CardActions sx={{ justifyContent: 'space-between', px: 2, py: 1.5 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {/* Like button */}
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Tooltip title={isLiked ? "Je n'aime plus" : "J'aime"}>
+      <CardActions disableSpacing sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        p: 1,
+        pt: 0,
+        bgcolor: 'transparent',
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Tooltip title={isLiked ? "Je n'aime plus" : "J'aime"}>
+            <IconButton
+              onClick={(e) => {
+                e.stopPropagation();
+                onLikeToggle(project.id);
+              }}
+              sx={{
+                color: isLiked ? 'error.main' : 'action.disabled',
+                '&:hover': {
+                  color: 'error.main',
+                },
+              }}
+              disabled={actionLoading === project.id}
+              aria-label={isLiked ? "Retirer le like" : "Ajouter un like"}
+            >
+              {actionLoading === project.id ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                <FavoriteIcon fontSize="small" />
+              )}
+            </IconButton>
+          </Tooltip>
+          
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              color: isLiked ? 'error.main' : 'text.secondary',
+              fontWeight: 'medium',
+              minWidth: '12px',
+            }}
+          >
+            {project.likes || 0}
+          </Typography>
+          
+          <SocialShare 
+            url={`${window.location.origin}/projects/${project.id}`}
+            title={project.title}
+            description={project.shortDescription}
+          />
+          
+          {project.githubUrl && (
+            <Tooltip title="Voir sur GitHub">
               <IconButton
-                onClick={handleLikeClick}
-                size="small"
-                sx={{ color: heartIconColor }}
+                component="a"
+                href={project.githubUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                sx={{
+                  color: 'action.disabled',
+                  '&:hover': {
+                    color: theme => theme.palette.mode === 'dark' ? 'white' : 'primary.main',
+                  },
+                }}
+                aria-label="GitHub Repository"
               >
-                {isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                <GitHubIcon fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Typography 
-              variant="body2" 
-              sx={{ 
-                color: heartIconColor,
-                fontWeight: 'medium',
-                minWidth: '12px',
-              }}
-            >
-              {project.likes || 0}
-            </Typography>
-          </Box>
-
-          {/* External links */}
-          <Box sx={{ display: 'flex', gap: 0.5, ml: 1 }}>
-            {project.githubUrl && (
-              <Tooltip title="GitHub">
-                <IconButton
-                  href={project.githubUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  size="small"
-                  sx={{ color: theme.palette.text.secondary }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <GitHubIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
-            {project.websiteUrl && (
-              <Tooltip title="Site Web">
-                <IconButton
-                  href={project.websiteUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  size="small"
-                  sx={{ color: theme.palette.text.secondary }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <LanguageIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
-          </Box>
+          )}
+          
+          {project.websiteUrl && (
+            <Tooltip title="Voir le site web">
+              <IconButton
+                component="a"
+                href={project.websiteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                sx={{
+                  color: 'action.disabled',
+                  '&:hover': {
+                    color: theme => theme.palette.mode === 'dark' ? 'white' : 'primary.main',
+                  },
+                }}
+                aria-label="Website"
+              >
+                <LanguageIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
         </Box>
-
-        <Box sx={{ display: 'flex', gap: 0.5 }}>
-          {/* Admin actions */}
+        
+        <Box>
           {isAdmin && (
             <>
               {onEdit && (
                 <Tooltip title="Modifier">
                   <IconButton
                     onClick={handleEditClick}
-                    size="small"
-                    sx={{ color: isDarkMode ? '#5B348B' : 'primary.main' }}
+                    sx={{
+                      color: 'action.disabled',
+                      '&:hover': {
+                        color: 'info.main',
+                      },
+                    }}
+                    aria-label="Modifier ce projet"
                   >
                     <EditIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
               )}
+              
               {onDelete && (
                 <Tooltip title="Supprimer">
                   <IconButton
                     onClick={handleDeleteClick}
-                    size="small"
-                    color="error"
+                    sx={{
+                      color: 'action.disabled',
+                      '&:hover': {
+                        color: 'error.main',
+                      },
+                    }}
+                    aria-label="Supprimer ce projet"
                   >
                     <DeleteIcon fontSize="small" />
                   </IconButton>
@@ -359,23 +405,19 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
               )}
             </>
           )}
-
-          {/* View details button */}
+          
           <Tooltip title="Voir les détails">
             <IconButton
-              size="small"
               onClick={handleViewDetails}
-              sx={{ 
-                color: '#5B348B',
-                bgcolor: alpha('#5B348B', 0.1),
+              sx={{
+                color: 'action.disabled',
                 '&:hover': {
-                  bgcolor: alpha('#5B348B', 0.2),
+                  color: theme => theme.palette.mode === 'dark' ? 'white' : 'primary.main',
                 },
-                width: 28,
-                height: 28,
               }}
+              aria-label="Voir les détails du projet"
             >
-              <InfoIcon fontSize="small" />
+              <ArrowForwardIcon fontSize="small" />
             </IconButton>
           </Tooltip>
         </Box>

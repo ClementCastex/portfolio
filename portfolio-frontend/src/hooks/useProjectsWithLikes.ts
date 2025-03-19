@@ -6,6 +6,7 @@ import { fetchProjects, updateProjectLikesThunk } from '../store/slices/projectS
 import { addBookmark, removeBookmark, fetchBookmarks } from '../store/slices/bookmarkSlice';
 import { Project } from '../types';
 import { isProjectLiked } from '../utils/projectUtils';
+import { useNotificationContext } from './useNotificationContext';
 
 type SortOption = 'title_asc' | 'title_desc' | 'likes_asc' | 'likes_desc' | 'date_asc' | 'date_desc';
 
@@ -27,15 +28,17 @@ interface UseProjectsWithLikesReturn {
   handleLikeToggle: (projectId: number) => Promise<void>;
   showOnlyLiked: boolean;
   setShowOnlyLiked: (show: boolean) => void;
+  actionLoading: number | null;
 }
 
 export const useProjectsWithLikes = (): UseProjectsWithLikesReturn => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const notification = useNotificationContext();
   
   const { projects, loading, error } = useSelector((state: RootState) => state.projects);
-  const { bookmarks } = useSelector((state: RootState) => state.bookmarks);
-  const { token } = useSelector((state: RootState) => state.auth);
+  const { bookmarks, loading: bookmarksLoading } = useSelector((state: RootState) => state.bookmarks);
+  const { token, user } = useSelector((state: RootState) => state.auth);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
@@ -43,6 +46,7 @@ export const useProjectsWithLikes = (): UseProjectsWithLikesReturn => {
   const [sortBy, setSortBy] = useState('date_desc');
   const [allTags, setAllTags] = useState<string[]>([]);
   const [showOnlyLiked, setShowOnlyLiked] = useState(false);
+  const [actionLoading, setActionLoading] = useState<number | null>(null);
 
   useEffect(() => {
     dispatch(fetchProjects() as any);
@@ -89,33 +93,30 @@ export const useProjectsWithLikes = (): UseProjectsWithLikesReturn => {
   const handleLikeToggle = async (projectId: number) => {
     if (!token) {
       navigate('/login');
+      notification.showNotification('Connectez-vous pour ajouter des likes', 'info');
       return;
     }
 
-    console.log('Toggling like for project:', projectId);
-
     try {
+      setActionLoading(projectId);
       // 1. Trouver le bookmark correspondant au projet
       const bookmark = bookmarks.find(b => b?.project?.id === projectId);
-      console.log('Found bookmark:', bookmark);
+      const project = projects.find(p => p.id === projectId);
+      const projectTitle = project?.title || 'ce projet';
 
       let result;
       if (bookmark) {
         // 2. Si le bookmark existe, le supprimer
-        console.log('Removing bookmark:', bookmark.id);
         result = await dispatch(removeBookmark(bookmark.id) as any).unwrap();
-        console.log('Remove result:', result);
+        notification.showNotification(`Vous n'aimez plus "${projectTitle}"`, 'info');
       } else {
         // 3. Sinon, ajouter un nouveau bookmark
-        console.log('Adding bookmark for project:', projectId);
         result = await dispatch(addBookmark(projectId) as any).unwrap();
-        console.log('Add result:', result);
+        notification.showNotification(`Vous aimez "${projectTitle}"`, 'success');
       }
       
       // 4. Mettre à jour le nombre de likes du projet
       if (result && (result.action === 'added' || result.action === 'removed')) {
-        console.log(`Like ${result.action} successfully, updating UI`);
-        
         // 5. Mettre à jour le nombre de likes dans le store
         await dispatch(updateProjectLikesThunk({
           projectId: result.project.id,
@@ -130,7 +131,9 @@ export const useProjectsWithLikes = (): UseProjectsWithLikesReturn => {
       }
     } catch (error) {
       console.error('Error toggling bookmark:', error);
-      alert('Une erreur est survenue lors de l\'ajout ou de la suppression du like.');
+      notification.showNotification('Une erreur est survenue lors de la gestion du like', 'error');
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -152,5 +155,6 @@ export const useProjectsWithLikes = (): UseProjectsWithLikesReturn => {
     handleLikeToggle,
     showOnlyLiked,
     setShowOnlyLiked,
+    actionLoading,
   };
 }; 

@@ -85,6 +85,7 @@ const Projects: React.FC = () => {
     handleLikeToggle,
     showOnlyLiked,
     setShowOnlyLiked,
+    actionLoading,
   } = useProjectsWithLikes();
 
   const handleEdit = (project: Project) => {
@@ -359,98 +360,48 @@ const Projects: React.FC = () => {
         </Fade>
       ) : (
         <>
-          {/* Onglets filtrant les projets par statut */}
-          {activeTab === 0 ? (
+          {/* Grid de tous les projets */}
+          {view === 'grid' ? (
             <Grid container spacing={3}>
-              {filteredProjects.map((project, index) => (
-                <Grid 
-                  item 
-                  key={project.id} 
-                  xs={12} 
-                  sm={view === 'list' ? 12 : 6} 
-                  md={view === 'list' ? 12 : 4}
-                >
-                  <Grow 
-                    in={true} 
-                    style={{ transformOrigin: '0 0 0' }} 
-                    timeout={(index % 9) * 100 + 300}
+              {filteredProjects.map(project => (
+                <Grid item xs={12} sm={6} md={4} key={project.id}>
+                  <Grow
+                    in={true}
+                    timeout={500}
                   >
                     <Box>
                       <ProjectCard
                         project={project}
-                        onLike={handleLikeToggle}
+                        onLikeToggle={handleLikeToggle}
                         isLiked={isLiked(project.id)}
+                        onEdit={user?.roles?.includes('ROLE_ADMIN') ? handleEdit : undefined}
+                        onDelete={user?.roles?.includes('ROLE_ADMIN') ? handleDelete : undefined}
                         isAdmin={user?.roles?.includes('ROLE_ADMIN')}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
+                        actionLoading={actionLoading}
                       />
                     </Box>
                   </Grow>
                 </Grid>
               ))}
             </Grid>
-          ) : activeTab === 1 ? (
-            <Grid container spacing={3}>
-              {filteredProjects
-                .filter(project => project.status === 'completed')
-                .map((project, index) => (
-                  <Grid 
-                    item 
-                    key={project.id} 
-                    xs={12} 
-                    sm={view === 'list' ? 12 : 6} 
-                    md={view === 'list' ? 12 : 4}
-                  >
-                    <Grow 
-                      in={true} 
-                      style={{ transformOrigin: '0 0 0' }} 
-                      timeout={(index % 9) * 100 + 300}
-                    >
-                      <Box>
-                        <ProjectCard
-                          project={project}
-                          onLike={handleLikeToggle}
-                          isLiked={isLiked(project.id)}
-                          isAdmin={user?.roles?.includes('ROLE_ADMIN')}
-                          onEdit={handleEdit}
-                          onDelete={handleDelete}
-                        />
-                      </Box>
-                    </Grow>
-                  </Grid>
-                ))}
-            </Grid>
           ) : (
-            <Grid container spacing={3}>
-              {filteredProjects
-                .filter(project => project.status === 'in_progress')
-                .map((project, index) => (
-                  <Grid 
-                    item 
-                    key={project.id} 
-                    xs={12} 
-                    sm={view === 'list' ? 12 : 6} 
-                    md={view === 'list' ? 12 : 4}
-                  >
-                    <Grow 
-                      in={true} 
-                      style={{ transformOrigin: '0 0 0' }} 
-                      timeout={(index % 9) * 100 + 300}
-                    >
-                      <Box>
-                        <ProjectCard
-                          project={project}
-                          onLike={handleLikeToggle}
-                          isLiked={isLiked(project.id)}
-                          isAdmin={user?.roles?.includes('ROLE_ADMIN')}
-                          onEdit={handleEdit}
-                          onDelete={handleDelete}
-                        />
-                      </Box>
-                    </Grow>
-                  </Grid>
-                ))}
-            </Grid>
+            <Box>
+              {filteredProjects.map(project => (
+                <Fade in={true} key={project.id} timeout={500}>
+                  <Box sx={{ mb: 2 }}>
+                    <ProjectCard
+                      project={project}
+                      onLikeToggle={handleLikeToggle}
+                      isLiked={isLiked(project.id)}
+                      onEdit={user?.roles?.includes('ROLE_ADMIN') ? handleEdit : undefined}
+                      onDelete={user?.roles?.includes('ROLE_ADMIN') ? handleDelete : undefined}
+                      isAdmin={user?.roles?.includes('ROLE_ADMIN')}
+                      actionLoading={actionLoading}
+                    />
+                  </Box>
+                </Fade>
+              ))}
+            </Box>
           )}
         </>
       )}
