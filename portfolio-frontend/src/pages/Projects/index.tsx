@@ -50,6 +50,7 @@ import ProjectFilters from '../../components/ProjectFilters';
 import ProjectForm from '../../components/ProjectForm';
 import { useProjectsWithLikes } from '../../hooks/useProjectsWithLikes';
 import { Project } from '../../types';
+import { Theme } from '@mui/material/styles';
 
 const Projects: React.FC = () => {
   const navigate = useNavigate();
@@ -207,11 +208,22 @@ const Projects: React.FC = () => {
             onChange={handleTabChange} 
             sx={{
               '& .MuiTabs-indicator': {
-                backgroundColor: theme => theme.palette.mode === 'dark' ? '#FFFFFF' : '#5B348B',
+                backgroundColor: (theme: Theme) => theme.palette.mode === 'dark' ? '#5B348B' : '#5B348B',
               },
-              '& .Mui-selected': {
-                color: theme => theme.palette.mode === 'dark' ? '#FFFFFF' : '#5B348B',
+              '& .MuiTab-root': {
+                color: (theme: Theme) => theme.palette.mode === 'dark' ? '#CCAA1D !important' : '#5B348B',
+                opacity: 0.7,
+                '&:hover': {
+                  color: (theme: Theme) => theme.palette.mode === 'dark' ? '#CCAA1D !important' : '#5B348B',
+                  opacity: 1,
+                },
+                '&.Mui-selected': {
+                  color: (theme: Theme) => theme.palette.mode === 'dark' ? '#F7F7F7 !important' : '#5B348B',
+                  opacity: 1,
+                  fontWeight: 'bold',
+                },
               },
+              bgcolor: (theme: Theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
             }}
           >
             <Tab label="Tous les projets" value={0} />

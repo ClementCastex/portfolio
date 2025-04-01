@@ -61,14 +61,14 @@ interface Skill {
 }
 
 const skills: Skill[] = [
-  { name: 'React', level: 90, category: 'Frontend', icon: <WebIcon color="primary" /> },
-  { name: 'TypeScript', level: 85, category: 'Frontend', icon: <CodeIcon color="primary" /> },
-  { name: 'Material-UI', level: 80, category: 'Frontend', icon: <PaletteIcon color="primary" /> },
-  { name: 'Symfony', level: 85, category: 'Backend', icon: <StorageIcon color="primary" /> },
-  { name: 'PHP', level: 85, category: 'Backend', icon: <CodeIcon color="primary" /> },
-  { name: 'MySQL', level: 80, category: 'Backend', icon: <StorageIcon color="primary" /> },
-  { name: 'Docker', level: 75, category: 'DevOps', icon: <DashboardIcon color="primary" /> },
-  { name: 'Git', level: 85, category: 'DevOps', icon: <CodeIcon color="primary" /> },
+  { name: 'React', level: 45, category: 'Frontend' },
+  { name: 'TypeScript', level: 45, category: 'Frontend' },
+  { name: 'Material-UI', level: 30, category: 'Frontend' },
+  { name: 'Symfony', level: 60, category: 'Backend' },
+  { name: 'PHP', level: 85, category: 'Backend' },
+  { name: 'MySQL', level: 80, category: 'Backend' },
+  { name: 'Docker', level: 35, category: 'DevOps' },
+  { name: 'Git', level: 85, category: 'DevOps' },
 ];
 
 const About: React.FC = () => {
@@ -78,6 +78,24 @@ const About: React.FC = () => {
   const [animationComplete, setAnimationComplete] = useState(false);
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
+
+  // Définition des icônes avec le thème disponible
+  const skillIcons = {
+    React: <WebIcon sx={{ color: isDarkMode ? '#CCAA1D' : '#5B348B' }} />,
+    TypeScript: <CodeIcon sx={{ color: isDarkMode ? '#CCAA1D' : '#5B348B' }} />,
+    'Material-UI': <PaletteIcon sx={{ color: isDarkMode ? '#CCAA1D' : '#5B348B' }} />,
+    Symfony: <StorageIcon sx={{ color: isDarkMode ? '#CCAA1D' : '#5B348B' }} />,
+    PHP: <CodeIcon sx={{ color: isDarkMode ? '#CCAA1D' : '#5B348B' }} />,
+    MySQL: <StorageIcon sx={{ color: isDarkMode ? '#CCAA1D' : '#5B348B' }} />,
+    Docker: <DashboardIcon sx={{ color: isDarkMode ? '#CCAA1D' : '#5B348B' }} />,
+    Git: <CodeIcon sx={{ color: isDarkMode ? '#CCAA1D' : '#5B348B' }} />
+  };
+
+  // Ajouter les icônes aux skills
+  const skillsWithIcons = skills.map(skill => ({
+    ...skill,
+    icon: skillIcons[skill.name as keyof typeof skillIcons]
+  }));
 
   useEffect(() => {
     // Déclenche les animations après le chargement
@@ -98,7 +116,7 @@ const About: React.FC = () => {
   };
 
   const renderSkills = () => {
-    const categories = Array.from(new Set(skills.map(skill => skill.category)));
+    const categories = Array.from(new Set(skillsWithIcons.map(skill => skill.category)));
     
     return (
       <Box>
@@ -136,11 +154,18 @@ const About: React.FC = () => {
                   }}
                 >
                   <CardContent>
-                    <Typography variant="h6" gutterBottom color="#5B348B" fontWeight="bold">
+                    <Typography 
+                      variant="h6" 
+                      gutterBottom 
+                      sx={{ 
+                        color: theme => theme.palette.mode === 'dark' ? '#CCAA1D' : '#5B348B',
+                        fontWeight: 'bold'
+                      }}
+                    >
                       {category}
                     </Typography>
                     <Stack spacing={2.5}>
-                      {skills
+                      {skillsWithIcons
                         .filter(skill => skill.category === category)
                         .map(skill => (
                           <Box key={skill.name}>
@@ -258,13 +283,12 @@ const About: React.FC = () => {
                       height: 150,
                       mx: 'auto',
                       mb: 2,
-                      bgcolor: '#5B348B',
                       border: '5px solid white',
                       boxShadow: 3
                     }}
-                  >
-                    CC
-                  </Avatar>
+                    src="/images/Profil-Picture.webp"
+                    alt="Clément Castex"
+                  />
                   <Typography variant="h4" gutterBottom fontWeight="bold">
                     Castex Clement
                   </Typography>
@@ -284,6 +308,10 @@ const About: React.FC = () => {
                   >
                     <Tooltip title="GitHub">
                       <IconButton 
+                        component="a"
+                        href="https://github.com/ClementCastex"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         sx={{ 
                           bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
                           '&:hover': {
@@ -297,6 +325,10 @@ const About: React.FC = () => {
                     </Tooltip>
                     <Tooltip title="LinkedIn">
                       <IconButton 
+                        component="a"
+                        href="https://www.linkedin.com/in/clément-castex/"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         sx={{ 
                           bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
                           '&:hover': {
@@ -310,6 +342,8 @@ const About: React.FC = () => {
                     </Tooltip>
                     <Tooltip title="Email">
                       <IconButton 
+                        component="a"
+                        href="mailto:ccastex@normandiewebschool.fr"
                         sx={{ 
                           bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
                           '&:hover': {
@@ -326,12 +360,17 @@ const About: React.FC = () => {
                   <Button
                     variant="contained"
                     startIcon={<DownloadIcon />}
+                    component="a"
+                    href={process.env.PUBLIC_URL + "/documents/CV Clément C, Chef de projet Digital.pdf"}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     sx={{ 
                       mt: 2,
                       bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.15)' : '#5B348B',
                       '&:hover': {
                         bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.25)' : '#4a2a70',
                       },
+                      color: '#F7F7F7',
                       borderRadius: 2
                     }}
                   >
@@ -477,10 +516,20 @@ const About: React.FC = () => {
               variant="fullWidth"
               sx={{
                 '& .MuiTabs-indicator': {
-                  backgroundColor: theme => theme.palette.mode === 'dark' ? '#FFFFFF' : '#5B348B',
+                  backgroundColor: theme => theme.palette.mode === 'dark' ? '#5B348B' : '#5B348B',
                 },
-                '& .Mui-selected': {
-                  color: theme => theme.palette.mode === 'dark' ? '#FFFFFF' : '#5B348B',
+                '& .MuiTab-root': {
+                  color: theme => theme.palette.mode === 'dark' ? '#CCAA1D !important' : '#5B348B',
+                  opacity: 0.7,
+                  '&:hover': {
+                    color: theme => theme.palette.mode === 'dark' ? '#CCAA1D !important' : '#5B348B',
+                    opacity: 1,
+                  },
+                  '&.Mui-selected': {
+                    color: theme => theme.palette.mode === 'dark' ? '#F7F7F7 !important' : '#5B348B',
+                    opacity: 1,
+                    fontWeight: 'bold',
+                  },
                 },
                 bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
               }}
