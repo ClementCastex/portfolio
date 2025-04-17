@@ -862,14 +862,24 @@ const AdminDashboard: React.FC = () => {
         <Tabs 
           value={activeTab} 
           onChange={handleChangeTab} 
-          aria-label="dashboard tabs"
           sx={{
             '& .MuiTabs-indicator': {
-              backgroundColor: theme => theme.palette.mode === 'dark' ? '#FFFFFF' : '#5B348B',
+              backgroundColor: theme => theme.palette.mode === 'dark' ? '#5B348B' : '#5B348B',
             },
-            '& .Mui-selected': {
-              color: theme => theme.palette.mode === 'dark' ? '#FFFFFF' : '#5B348B',
+            '& .MuiTab-root': {
+              color: theme => theme.palette.mode === 'dark' ? '#CCAA1D !important' : '#5B348B',
+              opacity: 0.7,
+              '&:hover': {
+                color: theme => theme.palette.mode === 'dark' ? '#CCAA1D !important' : '#5B348B',
+                opacity: 1,
+              },
+              '&.Mui-selected': {
+                color: theme => theme.palette.mode === 'dark' ? '#F7F7F7 !important' : '#5B348B',
+                opacity: 1,
+                fontWeight: 'bold',
+              },
             },
+            bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
           }}
         >
           <Tab 
