@@ -572,84 +572,51 @@ const LogoSection = () => (
   </Box>
 );
 
-// Composant pour la pluie de pixels
-const PixelRain = () => {
-  const [pixels, setPixels] = React.useState<Array<{ id: number; x: number; y: number; size: number; speed: number; opacity: number }>>([]);
-  const requestRef = React.useRef<number | undefined>(undefined);
-  const lastTimeRef = React.useRef<number | undefined>(undefined);
-
-  React.useEffect(() => {
-    const maxPixels = 50;
-    let pixelId = 0;
-
-    const createPixel = () => {
-      const x = Math.random() * window.innerWidth * 0.4 + window.innerWidth * 0.6;
-      const y = -10;
-      const size = Math.random() * 8 + 4;
-      const speed = Math.random() * 2 + 1;
-      const opacity = Math.random() * 0.6 + 0.3;
-      return { id: pixelId++, x, y, size, speed, opacity };
-    };
-
-    const initialPixels = Array.from({ length: maxPixels }, createPixel);
-    setPixels(initialPixels);
-
-    const animate = (timestamp: DOMHighResTimeStamp) => {
-      if (lastTimeRef.current !== undefined) {
-        setPixels(prevPixels => 
-          prevPixels.map(pixel => {
-            if (pixel.y > window.innerHeight) {
-              return createPixel();
-            }
-            return {
-              ...pixel,
-              y: pixel.y + pixel.speed,
-            };
-          })
-        );
-      }
-      lastTimeRef.current = timestamp;
-      requestRef.current = window.requestAnimationFrame(animate);
-    };
-
-    requestRef.current = window.requestAnimationFrame(animate);
-    return () => {
-      if (requestRef.current) {
-        window.cancelAnimationFrame(requestRef.current);
-      }
-    };
-  }, []);
-
-  return (
-    <Box
-      sx={{
-        position: 'fixed',
-        top: 0,
-        right: 0,
-        bottom: 0,
-        width: '40%',
-        pointerEvents: 'none',
-        zIndex: 1,
-      }}
-    >
-      {pixels.map(pixel => (
-        <Box
-          key={pixel.id}
-          sx={{
-            position: 'absolute',
-            width: pixel.size,
-            height: pixel.size,
-            backgroundColor: '#5B348B',
-            opacity: pixel.opacity,
-            left: pixel.x - window.innerWidth * 0.6,
-            top: pixel.y,
-            borderRadius: '1px',
-          }}
-        />
-      ))}
-    </Box>
-  );
-};
+// Composant pour l'effet de particules optimisé
+const ParticleEffect = () => (
+  <Box
+    sx={{
+      position: 'fixed',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      width: '40%',
+      pointerEvents: 'none',
+      zIndex: 1,
+      overflow: 'hidden',
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: '-50%',
+        left: '-50%',
+        right: '-50%',
+        bottom: '-50%',
+        width: '200%',
+        height: '200%',
+        background: 'transparent',
+        backgroundImage: theme => `
+          radial-gradient(circle at 15% 25%, ${theme.palette.mode === 'dark' ? 'rgba(91, 52, 139, 0.4)' : 'rgba(91, 52, 139, 0.25)'} 1px, transparent 3px),
+          radial-gradient(circle at 35% 65%, ${theme.palette.mode === 'dark' ? 'rgba(91, 52, 139, 0.35)' : 'rgba(91, 52, 139, 0.2)'} 2px, transparent 4px),
+          radial-gradient(circle at 55% 45%, ${theme.palette.mode === 'dark' ? 'rgba(91, 52, 139, 0.3)' : 'rgba(91, 52, 139, 0.18)'} 3px, transparent 6px),
+          radial-gradient(circle at 75% 85%, ${theme.palette.mode === 'dark' ? 'rgba(91, 52, 139, 0.25)' : 'rgba(91, 52, 139, 0.15)'} 1px, transparent 3px),
+          radial-gradient(circle at 85% 15%, ${theme.palette.mode === 'dark' ? 'rgba(91, 52, 139, 0.35)' : 'rgba(91, 52, 139, 0.2)'} 2px, transparent 4px)
+        `,
+        backgroundSize: '200px 200px',
+        animation: 'particleAnimation 30s linear infinite',
+        maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 60%, rgba(0,0,0,0))',
+        WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 60%, rgba(0,0,0,0))',
+      },
+      '@keyframes particleAnimation': {
+        '0%': {
+          transform: 'translate(0, 0) rotate(0deg)',
+        },
+        '100%': {
+          transform: 'translate(-30%, 30%) rotate(5deg)',
+        },
+      },
+    }}
+  />
+);
 
 const CharteGraphique: React.FC = () => {
   const handleDownloadPDF = () => {
@@ -691,7 +658,7 @@ const CharteGraphique: React.FC = () => {
         </Tooltip>
       </Box>
 
-      <PixelRain />
+      <ParticleEffect />
     </Box>
   );
 };
