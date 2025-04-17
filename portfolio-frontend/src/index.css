@@ -1,13 +1,33 @@
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
+}
+
+/* Cache le bouton de connexion Google */
+button:has(svg[data-testid="GoogleIcon"]),
+button:contains("Se connecter avec Google"),
+a:contains("Se connecter avec Google"),
+button.MuiButtonBase-root:contains("Google"),
+[aria-label="Se connecter avec Google"],
+button[class*="MuiButtonBase"][class*="MuiButton"]:has(svg[class*="Google"]),
+button#google-login,
+.google-login-button,
+button[class*="MuiButton"]:has(span:contains("Google")),
+.MuiButton-root:has(.MuiSvgIcon-root[data-testid="GoogleIcon"]),
+div:has(> button:contains("Google")),
+[role="button"]:contains("Google"),
+button.google-button,
+#google-signin-button,
+div[role="button"]:has(svg),
+button:has(img[alt*="Google"]) {
+  display: none !important;
 }
