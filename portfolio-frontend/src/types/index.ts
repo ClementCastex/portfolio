@@ -64,6 +64,54 @@ export interface SkillCardProps {
   description: string;
 }
 
+// Notes system types
+export interface Note {
+  id: number;
+  title: string;
+  contentHtml: string;
+  createdAt: string;
+  updatedAt: string;
+  lastSyncAt: string;
+  isArchived: boolean;
+  tags: NoteTag[];
+  assets: NoteAsset[];
+}
+
+export interface NoteTag {
+  id: number;
+  name: string;
+  colorHex: string;
+  createdAt: string;
+}
+
+export interface NoteAsset {
+  id: number;
+  type: 'image' | 'file';
+  filename: string;
+  mime: string;
+  size: number;
+  url: string;
+  createdAt: string;
+}
+
+export interface NotesState {
+  notes: Note[];
+  tags: NoteTag[];
+  activeNoteId: number | null;
+  loading: boolean;
+  error: string | null;
+  unsavedChanges: Record<number, boolean>;
+}
+
+export interface NoteTabProps {
+  note: Note;
+  isActive: boolean;
+  hasUnsavedChanges: boolean;
+  onSelect: () => void;
+  onClose: () => void;
+  onDuplicate: () => void;
+}
+
 export interface SocialButtonProps {
   href: string;
   icon: React.ReactElement;
