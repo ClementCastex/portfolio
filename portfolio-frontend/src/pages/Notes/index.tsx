@@ -178,7 +178,21 @@ const Notes: React.FC = () => {
                 onChange={(_, newValue) => dispatch(setActiveNote(newValue))}
                 variant="scrollable"
                 scrollButtons="auto"
-                sx={{ flexGrow: 1 }}
+                sx={{ 
+                  flexGrow: 1,
+                  '& .MuiTabs-indicator': {
+                    backgroundColor: theme.palette.primary.main,
+                  },
+                  '& .MuiTab-root': {
+                    color: alpha(theme.palette.common.white, 0.7),
+                    '&.Mui-selected': {
+                      color: theme.palette.common.white,
+                    },
+                    '&:hover': {
+                      color: theme.palette.common.white,
+                    },
+                  },
+                }}
               >
                 {notes.map((note) => (
                   <Tab
