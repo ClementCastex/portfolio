@@ -87,6 +87,15 @@ Un portfolio moderne et professionnel construit avec **React TypeScript** (front
    - Frontend : http://localhost:3000
    - Backend API : http://localhost:8000
 
+### 🔑 **Credentials de test**
+
+**Compte administrateur :**
+- Email : `clement.castex22@gmail.com`
+- Mot de passe : `admin123`
+- Accès : Portfolio + Dashboard + Bloc-notes
+
+*Note : Changez ces credentials en production !*
+
 ## 🔧 Configuration
 
 ### Variables d'environnement (Backend)
@@ -127,14 +136,45 @@ REACT_APP_ENVIRONMENT=development
 
 ## 📱 Fonctionnalités
 
+### 🎨 **Portfolio Core**
 - ✅ **Portfolio interactif** avec projets et compétences
 - ✅ **Interface d'administration** pour gérer les projets
-- ✅ **Authentification JWT**
+- ✅ **Authentification JWT** sécurisée
 - ✅ **Upload d'images** pour les projets
 - ✅ **Export PDF** du portfolio
 - ✅ **Design responsive** avec Material-UI
 - ✅ **Système de tags** pour filtrer les projets
 - ✅ **Gestion des favoris/bookmarks**
+
+### 📝 **Système de Bloc-notes Avancé** *(Admin uniquement)*
+- ✅ **Interface multi-onglets** style navigateur avec indicateurs de modifications
+- ✅ **Éditeur de texte riche** : gras, italique, listes, code inline
+- ✅ **Auto-save intelligent** avec debounce de 800ms
+- ✅ **Drag & Drop d'images** directement dans l'éditeur
+- ✅ **Gestion des tags** avec couleurs personnalisables
+- ✅ **Recherche full-text** dans titre et contenu
+- ✅ **Barre latérale** avec filtres et navigation
+- ✅ **Actions avancées** : duplication, suppression, export (structure prête)
+- ✅ **UX optimisée** : transitions fluides, gestion du curseur, contraste parfait
+
+### 📝 **Utilisation du Bloc-notes**
+
+**Accès :** Connectez-vous en tant qu'administrateur → Menu "Bloc-notes"
+
+**Fonctionnalités clés :**
+- **Créer une note** : Bouton "Nouvelle note" 
+- **Écriture riche** : Toolbar avec formatage (gras, italique, listes, code)
+- **Images** : Glisser-déposer ou bouton d'upload
+- **Tags** : Créer des tags colorés pour organiser vos notes
+- **Recherche** : Barre latérale avec recherche full-text
+- **Auto-save** : Sauvegarde automatique toutes les 800ms
+- **Multi-onglets** : Travaillez sur plusieurs notes simultanément
+- **Actions** : Dupliquer, supprimer, exporter (PDF/PNG à venir)
+
+**Base de données :**
+- Tables : `note`, `note_tag`, `note_asset`, `note_tag_links`
+- Sécurité : Accès restreint aux utilisateurs `ROLE_ADMIN`
+- Stockage : Images dans `/public/uploads/notes/`
 
 ## 🌐 Mise en production
 
@@ -311,12 +351,23 @@ php bin/console cache:clear
 
 ### 🚀 Améliorations futures
 
+#### **Portfolio Core**
 - [ ] Ajouter des tests automatisés
 - [ ] Implémenter un système de cache Redis
 - [ ] Ajouter la compression d'images
 - [ ] Mettre en place un CDN pour les assets
 - [ ] Ajouter Google Analytics
 - [ ] Implémenter un système de newsletter
+
+#### **Système de Notes**
+- [ ] **Export PDF/PNG** : Génération de documents depuis les notes
+- [ ] **Offline-first** : Synchronisation hors-ligne avec queue locale
+- [ ] **Historique des versions** : Timeline des modifications par note
+- [ ] **Partage de notes** : Liens publics temporaires pour partager
+- [ ] **Templates de notes** : Modèles prédéfinis pour différents usages
+- [ ] **Recherche avancée** : Filtres par date, taille, type de contenu
+- [ ] **Notifications** : Rappels et alertes pour les notes importantes
+- [ ] **Collaboration** : Commentaires et suggestions sur les notes
 
 ### 📋 Commandes utiles à retenir
 
@@ -334,6 +385,14 @@ php bin/console cache:clear --env=prod # Clear prod cache
 # Base de données
 php bin/console doctrine:migrations:migrate  # Appliquer migrations
 php bin/console doctrine:fixtures:load      # Charger des données de test
+
+# JWT (si problème d'authentification)
+openssl genpkey -out config/jwt/private.pem -algorithm rsa -pkeyopt rsa_keygen_bits:4096
+openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout
+
+# Notes system (Admin uniquement)
+# Accès : http://localhost:3000/notes (après connexion admin)
+# API : GET/POST /api/notes, GET/POST /api/note-tags
 
 # Git
 git add . && git commit -m "message" && git push origin DEV
