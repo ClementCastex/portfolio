@@ -7,6 +7,7 @@ import About from './pages/About';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminDashboard from './pages/AdminDashboard';
+import Notes from './pages/Notes';
 import ProtectedRoute from './components/ProtectedRoute';
 import CharteGraphique from './pages/CharteGraphique';
 
@@ -25,6 +26,14 @@ const Router: React.FC = () => {
         element={
           <ProtectedRoute>
             <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notes"
+        element={
+          <ProtectedRoute>
+            <Notes />
           </ProtectedRoute>
         }
       />
