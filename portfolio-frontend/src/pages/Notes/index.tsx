@@ -10,6 +10,7 @@ import {
   Drawer,
   List,
   ListItem,
+  ListItemButton,
   ListItemText,
   TextField,
   Chip,
@@ -289,55 +290,61 @@ const Notes: React.FC = () => {
               {filteredNotes.map((note) => (
                 <ListItem
                   key={note.id}
-                  button
-                  selected={note.id === activeNoteId}
-                  onClick={() => dispatch(setActiveNote(note.id))}
+                  disablePadding
                   sx={{
                     borderRadius: 1,
                     mb: 0.5,
-                    '&.Mui-selected': {
-                      backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                    },
                   }}
                 >
-                  <ListItemText
-                    primary={note.title}
-                    secondary={
-                      <Box>
-                        <Typography variant="caption" color="text.secondary">
-                          {new Date(note.updatedAt).toLocaleDateString()}
-                        </Typography>
-                        {note.tags.length > 0 && (
-                          <Stack direction="row" spacing={0.5} sx={{ mt: 0.5 }}>
-                            {note.tags.slice(0, 3).map((tag) => (
-                              <Chip
-                                key={tag.id}
-                                label={tag.name}
-                                size="small"
-                                sx={{
-                                  height: 16,
-                                  fontSize: '0.6rem',
-                                  backgroundColor: tag.colorHex,
-                                  color: 'white',
-                                }}
-                              />
-                            ))}
-                          </Stack>
-                        )}
-                      </Box>
-                    }
-                  />
-                  {unsavedChanges[note.id] && (
-                    <Box
-                      sx={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        backgroundColor: theme.palette.warning.main,
-                        ml: 1,
-                      }}
+                  <ListItemButton
+                    selected={note.id === activeNoteId}
+                    onClick={() => dispatch(setActiveNote(note.id))}
+                    sx={{
+                      borderRadius: 1,
+                      '&.Mui-selected': {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                      },
+                    }}
+                  >
+                    <ListItemText
+                      primary={note.title}
+                      secondary={
+                        <Box>
+                          <Typography variant="caption" color="text.secondary">
+                            {new Date(note.updatedAt).toLocaleDateString()}
+                          </Typography>
+                          {note.tags.length > 0 && (
+                            <Stack direction="row" spacing={0.5} sx={{ mt: 0.5 }}>
+                              {note.tags.slice(0, 3).map((tag) => (
+                                <Chip
+                                  key={tag.id}
+                                  label={tag.name}
+                                  size="small"
+                                  sx={{
+                                    height: 16,
+                                    fontSize: '0.6rem',
+                                    backgroundColor: tag.colorHex,
+                                    color: 'white',
+                                  }}
+                                />
+                              ))}
+                            </Stack>
+                          )}
+                        </Box>
+                      }
                     />
-                  )}
+                    {unsavedChanges[note.id] && (
+                      <Box
+                        sx={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          backgroundColor: theme.palette.warning.main,
+                          ml: 1,
+                        }}
+                      />
+                    )}
+                  </ListItemButton>
                 </ListItem>
               ))}
             </List>
