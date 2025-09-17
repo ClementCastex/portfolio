@@ -14,13 +14,18 @@ export const fetchProjects = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await fetch(API_ENDPOINTS.PROJECTS);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
       
       // Assurez-vous que chaque projet a une propriété likes
       return data.map((project: any) => ({
         ...project,
         // Vérifier si likes ou likeTotal existe, sinon mettre 0
-        likes: project.likes || project.likeTotal || 0,
+        likes: project.likeTotal || project.likes || 0,
       }));
     } catch (error) {
       return rejectWithValue('Erreur lors du chargement des projets');
