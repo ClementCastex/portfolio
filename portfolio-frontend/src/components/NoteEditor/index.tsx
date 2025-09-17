@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -31,6 +31,15 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onChange }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isEditorFocused, setIsEditorFocused] = useState(false);
+  const [lastCursorPosition, setLastCursorPosition] = useState<number>(0);
+
+  // Initialiser le contenu uniquement au changement de note (pas à chaque modification)
+  useEffect(() => {
+    if (editorRef.current && note.id) {
+      // Ne mettre à jour que si c'est une nouvelle note (ID différent)
+      editorRef.current.innerHTML = note.contentHtml || '';
+    }
+  }, [note.id]); // Dépendance uniquement sur l'ID de la note
 
   const execCommand = useCallback((command: string, value?: string) => {
     document.execCommand(command, false, value);
@@ -198,17 +207,25 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onChange }) => {
           ref={editorRef}
           contentEditable
           suppressContentEditableWarning
-          onInput={() => {
-            if (editorRef.current) {
-              onChange(editorRef.current.innerHTML);
+          onInput={(e) => {
+            // Sauvegarder la position du curseur avant de déclencher onChange
+            const selection = window.getSelection();
+            let cursorPos = 0;
+            if (selection && selection.rangeCount > 0) {
+              const range = selection.getRangeAt(0);
+              cursorPos = range.startOffset;
+              setLastCursorPosition(cursorPos);
             }
+            
+            // Déclencher onChange avec le nouveau contenu
+            const target = e.target as HTMLDivElement;
+            onChange(target.innerHTML);
           }}
           onFocus={() => setIsEditorFocused(true)}
           onBlur={() => setIsEditorFocused(false)}
           onPaste={handlePaste}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
-          dangerouslySetInnerHTML={{ __html: note.contentHtml }}
           sx={{
             minHeight: '100%',
             p: 3,

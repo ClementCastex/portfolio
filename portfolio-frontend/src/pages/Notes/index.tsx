@@ -82,7 +82,16 @@ const Notes: React.FC = () => {
   );
 
   const handleCreateNote = () => {
-    dispatch(createNote({ title: 'Nouvelle note' }) as any);
+    console.log('🚀 Creating new note...');
+    console.log('User:', user);
+    console.log('Token available:', !!user);
+    dispatch(createNote({ title: 'Nouvelle note' }) as any)
+      .then((result: any) => {
+        console.log('✅ Note created:', result);
+      })
+      .catch((error: any) => {
+        console.error('❌ Error creating note:', error);
+      });
   };
 
   const handleNoteChange = (noteId: number, field: 'title' | 'contentHtml', value: string) => {
@@ -233,14 +242,22 @@ const Notes: React.FC = () => {
           anchor="left"
           open={sidebarOpen}
           sx={{
-            width: 320,
+            width: sidebarOpen ? 320 : 0,
             flexShrink: 0,
+            transition: theme.transitions.create('width', {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.enteringScreen,
+            }),
             '& .MuiDrawer-paper': {
               width: 320,
               position: 'relative',
               border: 'none',
               borderRight: 1,
               borderColor: 'divider',
+              transition: theme.transitions.create('width', {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.enteringScreen,
+              }),
             },
           }}
         >
@@ -352,7 +369,19 @@ const Notes: React.FC = () => {
         </Drawer>
 
         {/* Main content */}
-        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <Box 
+          sx={{ 
+            flexGrow: 1, 
+            display: 'flex', 
+            flexDirection: 'column', 
+            overflow: 'hidden',
+            width: sidebarOpen ? 'calc(100% - 320px)' : '100%',
+            transition: theme.transitions.create('width', {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.enteringScreen,
+            }),
+          }}
+        >
           {activeNote ? (
             <>
               {/* Note actions bar */}
@@ -372,7 +401,25 @@ const Notes: React.FC = () => {
                   onChange={(e) => handleNoteChange(activeNote.id, 'title', e.target.value)}
                   variant="outlined"
                   size="small"
-                  sx={{ flexGrow: 1, mr: 2 }}
+                  sx={{ 
+                    flexGrow: 1, 
+                    mr: 2,
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: alpha(theme.palette.common.white, 0.3),
+                      },
+                      '&:hover fieldset': {
+                        borderColor: alpha(theme.palette.common.white, 0.5),
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: theme.palette.primary.main,
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      color: theme.palette.common.white,
+                      fontWeight: 500,
+                    },
+                  }}
                 />
 
                 <Stack direction="row" spacing={1}>

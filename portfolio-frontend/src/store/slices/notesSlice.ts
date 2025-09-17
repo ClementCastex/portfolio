@@ -54,7 +54,12 @@ export const createNote = createAsyncThunk(
   async (noteData: { title: string; contentHtml?: string; tagIds?: number[] }, { getState, rejectWithValue }) => {
     try {
       const { auth } = getState() as any;
-      if (!auth.token) throw new Error('No token');
+      console.log('🔑 Auth state:', { hasToken: !!auth.token, user: auth.user });
+      
+      if (!auth.token) throw new Error('No token available');
+
+      console.log('📡 Sending request to:', NOTES_API.NOTES);
+      console.log('📦 Data:', noteData);
 
       const response = await fetch(NOTES_API.NOTES, {
         method: 'POST',
@@ -62,9 +67,19 @@ export const createNote = createAsyncThunk(
         body: JSON.stringify(noteData),
       });
 
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return await response.json();
+      console.log('📡 Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Response error:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+      }
+      
+      const result = await response.json();
+      console.log('✅ Note created successfully:', result);
+      return result;
     } catch (error: any) {
+      console.error('❌ Create note error:', error);
       return rejectWithValue(error.message);
     }
   }
