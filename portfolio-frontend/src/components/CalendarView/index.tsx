@@ -42,9 +42,11 @@ const ModernCalendarPaper = styled(Paper)(({ theme }) => ({
 }));
 
 const CalendarDay = styled(Box)(({ theme }) => ({
-  height: 120,
-  padding: theme.spacing(1),
+  minHeight: 120,
+  height: 'auto',
+  padding: theme.spacing(1.5),
   border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+  borderRadius: theme.spacing(1),
   position: 'relative',
   cursor: 'pointer',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -127,10 +129,14 @@ const CalendarView: React.FC = () => {
   const generateCalendarDays = () => {
     const days = [];
     const firstDay = new Date(firstDayOfMonth);
+    
+    // Commencer au dimanche de la semaine qui contient le 1er du mois
     const startDate = new Date(firstDay);
-    startDate.setDate(startDate.getDate() - firstDay.getDay()); // Start from Sunday
+    const dayOfWeek = firstDay.getDay(); // 0 = Dimanche, 1 = Lundi, etc.
+    startDate.setDate(firstDay.getDate() - dayOfWeek);
 
-    for (let i = 0; i < 42; i++) { // 6 weeks × 7 days
+    // Générer 42 jours (6 semaines × 7 jours)
+    for (let i = 0; i < 42; i++) {
       const date = new Date(startDate);
       date.setDate(startDate.getDate() + i);
       
@@ -155,7 +161,7 @@ const CalendarView: React.FC = () => {
     'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
-  const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+  const dayNames = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 
   // Statistiques des événements
   const totalEvents = calendarEvents.length;
@@ -268,138 +274,141 @@ const CalendarView: React.FC = () => {
         {/* Calendrier moderne */}
         <ModernCalendarPaper elevation={8} sx={{ p: 3 }}>
           {/* En-têtes des jours */}
-          <Grid container sx={{ mb: 1 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1, mb: 2 }}>
             {dayNames.map((dayName, index) => (
-              <Grid item xs key={dayName}>
-                <Box sx={{ textAlign: 'center', py: 2 }}>
-                  <Typography 
-                    variant="subtitle2" 
-                    sx={{ 
-                      color: index === 0 || index === 6 ? theme.palette.secondary.main : 'text.primary',
-                      fontWeight: 'bold',
-                      fontSize: '0.9rem',
-                    }}
-                  >
-                    {dayName}
-                  </Typography>
-                </Box>
-              </Grid>
+              <Box key={dayName} sx={{ textAlign: 'center', py: 2 }}>
+                <Typography 
+                  variant="subtitle1" 
+                  sx={{ 
+                    color: index === 0 || index === 6 ? theme.palette.secondary.main : 'text.primary',
+                    fontWeight: 'bold',
+                    fontSize: '1rem',
+                  }}
+                >
+                  {dayName}
+                </Typography>
+              </Box>
             ))}
-          </Grid>
+          </Box>
 
-          {/* Grille du calendrier */}
-          <Grid container>
+          {/* Grille du calendrier - 7 colonnes pour chaque jour de la semaine */}
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(7, 1fr)', 
+            gap: 1,
+            minHeight: '600px',
+          }}>
             {calendarDays.map((day, index) => (
-              <Grid item xs key={index}>
-                <Zoom in timeout={100 + index * 10}>
-                  <CalendarDay
-                    onClick={() => setSelectedDay(day.date)}
-                    sx={{
-                      backgroundColor: day.isSelected
-                        ? alpha(theme.palette.primary.main, 0.15)
-                        : day.isCurrentMonth 
+              <Zoom key={index} in timeout={100 + index * 10}>
+                <CalendarDay
+                  onClick={() => setSelectedDay(day.date)}
+                  sx={{
+                    backgroundColor: day.isSelected
+                      ? alpha(theme.palette.primary.main, 0.15)
+                      : day.isCurrentMonth 
+                        ? (day.isToday 
+                            ? alpha(theme.palette.primary.main, 0.1) 
+                            : 'transparent')
+                        : alpha(theme.palette.grey[500], 0.05),
+                    border: day.isSelected 
+                      ? `2px solid ${theme.palette.primary.main}`
+                      : day.isToday
+                        ? `2px solid ${theme.palette.secondary.main}`
+                        : `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                    minHeight: '120px',
+                    height: 'auto',
+                  }}
+                >
+                  {/* Numéro du jour */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: day.isToday ? 'bold' : day.isSelected ? 'semibold' : 'normal',
+                        color: day.isCurrentMonth 
                           ? (day.isToday 
-                              ? alpha(theme.palette.primary.main, 0.1) 
-                              : 'transparent')
-                          : alpha(theme.palette.grey[500], 0.05),
-                      border: day.isSelected 
-                        ? `2px solid ${theme.palette.primary.main}`
-                        : day.isToday
-                          ? `2px solid ${theme.palette.secondary.main}`
-                          : `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-                    }}
-                  >
-                    {/* Numéro du jour */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          fontWeight: day.isToday ? 'bold' : day.isSelected ? 'semibold' : 'normal',
-                          color: day.isCurrentMonth 
-                            ? (day.isToday 
-                                ? theme.palette.secondary.main 
-                                : day.isSelected
-                                  ? theme.palette.primary.main
-                                  : 'white')
-                            : 'text.disabled',
-                          fontSize: day.isToday || day.isSelected ? '1rem' : '0.9rem',
-                        }}
-                      >
-                        {day.date.getDate()}
-                      </Typography>
-                      
-                      {day.events.length > 0 && (
-                        <Tooltip title={`${day.events.length} événement(s)`}>
-                          <Badge 
-                            badgeContent={day.events.length} 
-                            color={day.events.some((e: any) => e.isOverdue) ? 'error' : 'primary'}
-                            sx={{ '& .MuiBadge-badge': { fontSize: '0.6rem', minWidth: '16px', height: '16px' } }}
-                          >
-                            <ScheduleIcon fontSize="small" color="action" />
-                          </Badge>
-                        </Tooltip>
-                      )}
-                    </Box>
+                              ? theme.palette.secondary.main 
+                              : day.isSelected
+                                ? theme.palette.primary.main
+                                : 'white')
+                          : 'text.disabled',
+                        fontSize: day.isToday || day.isSelected ? '1.1rem' : '1rem',
+                      }}
+                    >
+                      {day.date.getDate()}
+                    </Typography>
+                    
+                    {day.events.length > 0 && (
+                      <Tooltip title={`${day.events.length} événement(s)`}>
+                        <Badge 
+                          badgeContent={day.events.length} 
+                          color={day.events.some((e: any) => e.isOverdue) ? 'error' : 'primary'}
+                          sx={{ '& .MuiBadge-badge': { fontSize: '0.7rem', minWidth: '18px', height: '18px' } }}
+                        >
+                          <ScheduleIcon fontSize="small" color="action" />
+                        </Badge>
+                      </Tooltip>
+                    )}
+                  </Box>
 
-                    {/* Événements du jour */}
-                    <Stack spacing={0.5}>
-                      {day.events.slice(0, 3).map((event: any, eventIndex: number) => (
-                        <Tooltip key={event.id} title={`${event.title} - ${event.isOverdue ? 'En retard' : 'Planifié'}`}>
-                          <EventCard
-                            theme={theme}
-                            isOverdue={event.isOverdue}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // TODO: Open card modal
-                              console.log('Open event:', event);
-                            }}
-                          >
-                            <Typography
-                              variant="caption"
-                              sx={{
-                                fontSize: '0.65rem',
-                                fontWeight: 'medium',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 0.5,
-                              }}
-                            >
-                              {event.isOverdue && <WarningIcon sx={{ fontSize: '0.8rem' }} />}
-                              <Box
-                                component="span"
-                                sx={{
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
-                                }}
-                              >
-                                {event.title}
-                              </Box>
-                            </Typography>
-                          </EventCard>
-                        </Tooltip>
-                      ))}
-                      
-                      {day.events.length > 3 && (
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: theme.palette.primary.main,
-                            fontSize: '0.65rem',
-                            textAlign: 'center',
-                            fontWeight: 'medium',
-                            py: 0.5,
+                  {/* Événements du jour */}
+                  <Stack spacing={0.5}>
+                    {day.events.slice(0, 2).map((event: any, eventIndex: number) => (
+                      <Tooltip key={event.id} title={`${event.title} - ${event.isOverdue ? 'En retard' : 'Planifié'}`}>
+                        <EventCard
+                          theme={theme}
+                          isOverdue={event.isOverdue}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // TODO: Open card modal
+                            console.log('Open event:', event);
                           }}
                         >
-                          +{day.events.length - 3} autres
-                        </Typography>
-                      )}
-                    </Stack>
-                  </CalendarDay>
-                </Zoom>
-              </Grid>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontSize: '0.7rem',
+                              fontWeight: 'medium',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 0.5,
+                            }}
+                          >
+                            {event.isOverdue && <WarningIcon sx={{ fontSize: '0.9rem' }} />}
+                            <Box
+                              component="span"
+                              sx={{
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {event.title}
+                            </Box>
+                          </Typography>
+                        </EventCard>
+                      </Tooltip>
+                    ))}
+                    
+                    {day.events.length > 2 && (
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: theme.palette.primary.main,
+                          fontSize: '0.7rem',
+                          textAlign: 'center',
+                          fontWeight: 'medium',
+                          py: 0.5,
+                        }}
+                      >
+                        +{day.events.length - 2} autres
+                      </Typography>
+                    )}
+                  </Stack>
+                </CalendarDay>
+              </Zoom>
             ))}
-          </Grid>
+          </Box>
         </ModernCalendarPaper>
 
         {/* Panneau latéral des détails du jour sélectionné */}
