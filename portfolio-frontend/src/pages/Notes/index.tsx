@@ -50,6 +50,7 @@ import {
 } from '../../store/slices/notesSlice';
 import NoteEditor from '../../components/NoteEditor';
 import NoteTagManager from '../../components/NoteTagManager';
+import { ExportService } from '../../services/exportService';
 
 const Notes: React.FC = () => {
   const theme = useTheme();
@@ -116,14 +117,22 @@ const Notes: React.FC = () => {
     dispatch(duplicateNote(noteId) as any);
   };
 
-  const handleExportPDF = (noteId: number) => {
-    // TODO: Implement PDF export
-    console.log('Export PDF for note:', noteId);
+  const handleExportPDF = async (noteId: number) => {
+    const note = notes.find(n => n.id === noteId);
+    if (note) {
+      await ExportService.exportNoteToPDF(note);
+    }
   };
 
-  const handleExportPNG = (noteId: number) => {
-    // TODO: Implement PNG export
-    console.log('Export PNG for note:', noteId);
+  const handleExportPNG = async (noteId: number) => {
+    const note = notes.find(n => n.id === noteId);
+    if (note) {
+      await ExportService.exportNoteToPNG(note);
+    }
+  };
+
+  const handleExportAllNotes = async () => {
+    await ExportService.exportAllNotesToPDF(notes);
   };
 
   const filteredNotes = notes.filter(note => {
@@ -247,6 +256,15 @@ const Notes: React.FC = () => {
             )}
           </Box>
 
+          <Button
+            variant="outlined"
+            startIcon={<DownloadIcon />}
+            onClick={handleExportAllNotes}
+            sx={{ ml: 2 }}
+            disabled={notes.length === 0}
+          >
+            Exporter tout
+          </Button>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
