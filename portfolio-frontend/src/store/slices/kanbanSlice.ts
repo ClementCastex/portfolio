@@ -588,6 +588,10 @@ const kanbanSlice = createSlice({
           for (const column of state.activeBoard.columns) {
             const card = column.cards.find(c => c.id === action.meta.arg.cardId);
             if (card) {
+              // Ensure links is an array before pushing
+              if (!Array.isArray(card.links)) {
+                card.links = [];
+              }
               card.links.push(action.payload);
               break;
             }

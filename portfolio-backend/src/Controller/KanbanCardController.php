@@ -252,7 +252,7 @@ class KanbanCardController extends AbstractController
         $link->setCard($card);
         $link->setUrl($url);
 
-        // TODO: Fetch metadata (title, favicon) from URL
+        // Fetch metadata (title, favicon) from URL
         $link->setTitle($this->fetchUrlTitle($url));
 
         $this->entityManager->persist($link);

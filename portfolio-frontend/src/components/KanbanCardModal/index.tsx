@@ -52,7 +52,7 @@ import {
 } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import { KanbanCard, KanbanBoard as KanbanBoardType } from '../../types';
-import { createCard, updateCard, createTag, uploadCardFile, deleteCardFile, createCardLink, deleteCardLink, createCardComment, deleteCardComment } from '../../store/slices/kanbanSlice';
+import { createCard, updateCard, createTag, uploadCardFile, deleteCardFile, createCardLink, deleteCardLink, createCardComment, deleteCardComment, fetchKanban } from '../../store/slices/kanbanSlice';
 import FilePreview from '../FilePreview';
 
 interface KanbanCardModalProps {
@@ -193,7 +193,13 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && card) {
-      dispatch(uploadCardFile({ cardId: card.id, file }) as any);
+      dispatch(uploadCardFile({ cardId: card.id, file }) as any)
+        .then(() => {
+          // Recharger la carte pour avoir toutes les données à jour
+          if (board) {
+            dispatch(fetchKanban(board.id) as any);
+          }
+        });
     }
   };
 
@@ -204,8 +210,14 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
   const handleAddLink = () => {
     if (newLinkUrl.trim()) {
       if (card) {
-        // Carte existante - API call
-        dispatch(createCardLink({ cardId: card.id, url: newLinkUrl.trim() }) as any);
+        // Carte existante - API call puis rechargement
+        dispatch(createCardLink({ cardId: card.id, url: newLinkUrl.trim() }) as any)
+          .then(() => {
+            // Recharger la carte pour avoir toutes les données à jour
+            if (board) {
+              dispatch(fetchKanban(board.id) as any);
+            }
+          });
       } else {
         // Nouvelle carte - ajouter à l'état local (sera sauvé avec la carte)
         console.log('Link will be saved with new card:', newLinkUrl.trim());
@@ -220,7 +232,13 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
 
   const handleAddComment = () => {
     if (newComment.trim() && card) {
-      dispatch(createCardComment({ cardId: card.id, content: newComment.trim() }) as any);
+      dispatch(createCardComment({ cardId: card.id, content: newComment.trim() }) as any)
+        .then(() => {
+          // Recharger la carte pour avoir toutes les données à jour
+          if (board) {
+            dispatch(fetchKanban(board.id) as any);
+          }
+        });
       setNewComment('');
     }
   };

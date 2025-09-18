@@ -37,6 +37,19 @@ interface KanbanCardProps {
 const KanbanCard: React.FC<KanbanCardProps> = ({ card, columnId, onEdit }) => {
   const theme = useTheme();
 
+  // Normaliser les données de la carte pour éviter les erreurs
+  const normalizedCard = {
+    ...card,
+    tags: Array.isArray(card.tags) ? card.tags : [],
+    files: Array.isArray(card.files) ? card.files : [],
+    links: Array.isArray(card.links) ? card.links : [],
+    comments: Array.isArray(card.comments) ? card.comments : [],
+    checklist: Array.isArray(card.checklist) ? card.checklist : [],
+    assignedUserIds: Array.isArray(card.assignedUserIds) ? card.assignedUserIds : [],
+    checklistProgress: card.checklistProgress || { completed: 0, total: 0, percentage: 0 },
+    priorityColor: card.priorityColor || '#9e9e9e',
+  };
+
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData('cardId', card.id.toString());
     e.dataTransfer.setData('fromColumnId', columnId.toString());
@@ -72,9 +85,9 @@ const KanbanCard: React.FC<KanbanCardProps> = ({ card, columnId, onEdit }) => {
         '&:active': {
           transform: 'scale(0.98)',
         },
-        border: card.isOverdue ? 2 : 1,
-        borderColor: card.isOverdue ? theme.palette.error.main : 'divider',
-        borderLeft: card.priority ? `4px solid ${card.priorityColor}` : 'none',
+        border: normalizedCard.isOverdue ? 2 : 1,
+        borderColor: normalizedCard.isOverdue ? theme.palette.error.main : 'divider',
+        borderLeft: normalizedCard.priority ? `4px solid ${normalizedCard.priorityColor}` : 'none',
       }}
     >
       <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
@@ -89,16 +102,16 @@ const KanbanCard: React.FC<KanbanCardProps> = ({ card, columnId, onEdit }) => {
               flexGrow: 1,
             }}
           >
-            {card.title}
+            {normalizedCard.title}
           </Typography>
           
           {/* Priority indicator */}
-          {card.priority && (
-            <Tooltip title={`Priorité ${card.priority === 'high' ? 'haute' : card.priority === 'medium' ? 'moyenne' : 'basse'}`}>
+          {normalizedCard.priority && (
+            <Tooltip title={`Priorité ${normalizedCard.priority === 'high' ? 'haute' : normalizedCard.priority === 'medium' ? 'moyenne' : 'basse'}`}>
               <PriorityIcon 
                 sx={{ 
                   fontSize: 16, 
-                  color: card.priorityColor,
+                  color: normalizedCard.priorityColor,
                   ml: 1,
                 }} 
               />
@@ -125,23 +138,23 @@ const KanbanCard: React.FC<KanbanCardProps> = ({ card, columnId, onEdit }) => {
         )}
 
         {/* Checklist Progress */}
-        {card.checklist && Array.isArray(card.checklist) && card.checklist.length > 0 && (
+        {normalizedCard.checklist && normalizedCard.checklist.length > 0 && (
           <Box sx={{ mb: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
               <ChecklistIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
               <Typography variant="caption" color="text.secondary">
-                {card.checklistProgress?.completed || 0}/{card.checklistProgress?.total || 0}
+                {normalizedCard.checklistProgress.completed}/{normalizedCard.checklistProgress.total}
               </Typography>
             </Box>
             <LinearProgress
               variant="determinate"
-              value={card.checklistProgress?.percentage || 0}
+              value={normalizedCard.checklistProgress.percentage}
               sx={{
                 height: 4,
                 borderRadius: 2,
                 backgroundColor: alpha(theme.palette.grey[500], 0.3),
                 '& .MuiLinearProgress-bar': {
-                  backgroundColor: card.checklistProgress?.percentage === 100 
+                  backgroundColor: normalizedCard.checklistProgress.percentage === 100 
                     ? theme.palette.success.main 
                     : theme.palette.primary.main,
                 },
@@ -151,9 +164,9 @@ const KanbanCard: React.FC<KanbanCardProps> = ({ card, columnId, onEdit }) => {
         )}
 
         {/* Tags */}
-        {card.tags && Array.isArray(card.tags) && card.tags.length > 0 && (
+        {normalizedCard.tags.length > 0 && (
           <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
-            {card.tags.slice(0, 3).map((tag) => (
+            {normalizedCard.tags.slice(0, 3).map((tag) => (
               <Chip
                 key={tag.id}
                 label={tag.name}
@@ -169,9 +182,9 @@ const KanbanCard: React.FC<KanbanCardProps> = ({ card, columnId, onEdit }) => {
                 }}
               />
             ))}
-            {card.tags.length > 3 && (
+            {normalizedCard.tags.length > 3 && (
               <Chip
-                label={`+${card.tags.length - 3}`}
+                label={`+${normalizedCard.tags.length - 3}`}
                 size="small"
                 sx={{
                   height: 20,
@@ -185,10 +198,10 @@ const KanbanCard: React.FC<KanbanCardProps> = ({ card, columnId, onEdit }) => {
         )}
 
         {/* Assigned Users */}
-        {card.assignedUserIds && Array.isArray(card.assignedUserIds) && card.assignedUserIds.length > 0 && (
+        {normalizedCard.assignedUserIds.length > 0 && (
           <Box sx={{ mb: 1 }}>
             <AvatarGroup max={3} sx={{ justifyContent: 'flex-start' }}>
-              {card.assignedUserIds.map((userId, index) => (
+              {normalizedCard.assignedUserIds.map((userId, index) => (
                 <Tooltip key={userId} title={`Utilisateur ${userId}`}>
                   <Avatar 
                     sx={{ 
@@ -207,25 +220,25 @@ const KanbanCard: React.FC<KanbanCardProps> = ({ card, columnId, onEdit }) => {
         )}
 
         {/* Time Tracking */}
-        {(card.estimatedHours || card.loggedHours) && (
+        {(normalizedCard.estimatedHours || normalizedCard.loggedHours) && (
           <Box sx={{ mb: 1 }}>
             <Stack direction="row" spacing={1} alignItems="center">
               <TimeIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
               <Typography variant="caption" color="text.secondary">
-                {card.loggedHours || 0}h
-                {card.estimatedHours && ` / ${card.estimatedHours}h`}
+                {normalizedCard.loggedHours || 0}h
+                {normalizedCard.estimatedHours && ` / ${normalizedCard.estimatedHours}h`}
               </Typography>
-              {card.estimatedHours && card.loggedHours && (
+              {normalizedCard.estimatedHours && normalizedCard.loggedHours && (
                 <LinearProgress
                   variant="determinate"
-                  value={Math.min((card.loggedHours / card.estimatedHours) * 100, 100)}
+                  value={Math.min((normalizedCard.loggedHours / normalizedCard.estimatedHours) * 100, 100)}
                   sx={{
                     width: 40,
                     height: 3,
                     borderRadius: 2,
                     backgroundColor: alpha(theme.palette.grey[500], 0.3),
                     '& .MuiLinearProgress-bar': {
-                      backgroundColor: card.loggedHours > card.estimatedHours 
+                      backgroundColor: normalizedCard.loggedHours > normalizedCard.estimatedHours 
                         ? theme.palette.warning.main 
                         : theme.palette.info.main,
                     },
@@ -277,32 +290,32 @@ const KanbanCard: React.FC<KanbanCardProps> = ({ card, columnId, onEdit }) => {
 
           {/* Attachments, links, and comments count */}
           <Stack direction="row" spacing={0.5}>
-            {card.files && Array.isArray(card.files) && card.files.length > 0 && (
-              <Tooltip title={`${card.files.length} pièce(s) jointe(s)`}>
-                <Badge badgeContent={card.files.length} color="primary">
+            {normalizedCard.files.length > 0 && (
+              <Tooltip title={`${normalizedCard.files.length} pièce(s) jointe(s)`}>
+                <Badge badgeContent={normalizedCard.files.length} color="primary">
                   <AttachFileIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                 </Badge>
               </Tooltip>
             )}
-            {card.links && Array.isArray(card.links) && card.links.length > 0 && (
-              <Tooltip title={`${card.links.length} lien(s)`}>
-                <Badge badgeContent={card.links.length} color="secondary">
+            {normalizedCard.links.length > 0 && (
+              <Tooltip title={`${normalizedCard.links.length} lien(s)`}>
+                <Badge badgeContent={normalizedCard.links.length} color="secondary">
                   <LinkIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                 </Badge>
               </Tooltip>
             )}
-            {card.comments && Array.isArray(card.comments) && card.comments.length > 0 && (
-              <Tooltip title={`${card.comments.length} commentaire(s)`}>
-                <Badge badgeContent={card.comments.length} color="info">
+            {normalizedCard.comments.length > 0 && (
+              <Tooltip title={`${normalizedCard.comments.length} commentaire(s)`}>
+                <Badge badgeContent={normalizedCard.comments.length} color="info">
                   <CommentIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                 </Badge>
               </Tooltip>
             )}
-            {card.checklist && Array.isArray(card.checklist) && card.checklist.length > 0 && (
-              <Tooltip title={`${card.checklistProgress?.completed || 0}/${card.checklistProgress?.total || 0} tâches`}>
+            {normalizedCard.checklist.length > 0 && (
+              <Tooltip title={`${normalizedCard.checklistProgress.completed}/${normalizedCard.checklistProgress.total} tâches`}>
                 <Badge 
-                  badgeContent={`${card.checklistProgress?.completed || 0}/${card.checklistProgress?.total || 0}`} 
-                  color={card.checklistProgress?.percentage === 100 ? 'success' : 'default'}
+                  badgeContent={`${normalizedCard.checklistProgress.completed}/${normalizedCard.checklistProgress.total}`} 
+                  color={normalizedCard.checklistProgress.percentage === 100 ? 'success' : 'default'}
                   sx={{
                     '& .MuiBadge-badge': {
                       fontSize: '0.6rem',
