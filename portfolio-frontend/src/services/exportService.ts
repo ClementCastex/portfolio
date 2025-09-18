@@ -61,7 +61,6 @@ export class ExportService {
 
       // Convert to canvas
       const canvas = await html2canvas(exportContainer, {
-        scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: 'white',
@@ -164,7 +163,6 @@ export class ExportService {
 
       // Convert to canvas
       const canvas = await html2canvas(exportContainer, {
-        scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: 'white',
