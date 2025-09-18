@@ -253,6 +253,93 @@ export const createTag = createAsyncThunk(
   }
 );
 
+export const uploadCardFile = createAsyncThunk(
+  'kanban/uploadCardFile',
+  async ({ cardId, file }: { cardId: number; file: File }, { getState, rejectWithValue }) => {
+    try {
+      const { auth } = getState() as any;
+      if (!auth.token) throw new Error('No token');
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`${API_BASE_URL}/api/cards/${cardId}/files`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${auth.token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return await response.json();
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const deleteCardFile = createAsyncThunk(
+  'kanban/deleteCardFile',
+  async (fileId: number, { getState, rejectWithValue }) => {
+    try {
+      const { auth } = getState() as any;
+      if (!auth.token) throw new Error('No token');
+
+      const response = await fetch(`${API_BASE_URL}/api/files/${fileId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(auth.token),
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return fileId;
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const createCardLink = createAsyncThunk(
+  'kanban/createCardLink',
+  async ({ cardId, url }: { cardId: number; url: string }, { getState, rejectWithValue }) => {
+    try {
+      const { auth } = getState() as any;
+      if (!auth.token) throw new Error('No token');
+
+      const response = await fetch(`${API_BASE_URL}/api/cards/${cardId}/links`, {
+        method: 'POST',
+        headers: getAuthHeaders(auth.token),
+        body: JSON.stringify({ url }),
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return await response.json();
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const deleteCardLink = createAsyncThunk(
+  'kanban/deleteCardLink',
+  async (linkId: number, { getState, rejectWithValue }) => {
+    try {
+      const { auth } = getState() as any;
+      if (!auth.token) throw new Error('No token');
+
+      const response = await fetch(`${API_BASE_URL}/api/links/${linkId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(auth.token),
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return linkId;
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 export const fetchCalendarEvents = createAsyncThunk(
   'kanban/fetchCalendarEvents',
   async ({ from, to }: { from: string; to: string }, { getState, rejectWithValue }) => {
@@ -402,6 +489,50 @@ const kanbanSlice = createSlice({
       .addCase(createTag.fulfilled, (state, action) => {
         if (state.activeBoard) {
           state.activeBoard.tags.push(action.payload);
+        }
+      })
+      // Upload file
+      .addCase(uploadCardFile.fulfilled, (state, action) => {
+        if (state.activeBoard) {
+          for (const column of state.activeBoard.columns) {
+            const card = column.cards.find(c => c.id === action.meta.arg.cardId);
+            if (card) {
+              card.files.push(action.payload);
+              break;
+            }
+          }
+        }
+      })
+      // Delete file
+      .addCase(deleteCardFile.fulfilled, (state, action) => {
+        if (state.activeBoard) {
+          for (const column of state.activeBoard.columns) {
+            for (const card of column.cards) {
+              card.files = card.files.filter(file => file.id !== action.payload);
+            }
+          }
+        }
+      })
+      // Create link
+      .addCase(createCardLink.fulfilled, (state, action) => {
+        if (state.activeBoard) {
+          for (const column of state.activeBoard.columns) {
+            const card = column.cards.find(c => c.id === action.meta.arg.cardId);
+            if (card) {
+              card.links.push(action.payload);
+              break;
+            }
+          }
+        }
+      })
+      // Delete link
+      .addCase(deleteCardLink.fulfilled, (state, action) => {
+        if (state.activeBoard) {
+          for (const column of state.activeBoard.columns) {
+            for (const card of column.cards) {
+              card.links = card.links.filter(link => link.id !== action.payload);
+            }
+          }
         }
       });
   },

@@ -31,6 +31,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  alpha,
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -45,10 +46,13 @@ import {
   ExpandMore as ExpandMoreIcon,
   Comment as CommentIcon,
   Person as PersonIcon,
+  AttachFile as AttachFileIcon,
+  Link as LinkIcon,
 } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import { KanbanCard, KanbanBoard as KanbanBoardType } from '../../types';
-import { createCard, updateCard, createTag } from '../../store/slices/kanbanSlice';
+import { createCard, updateCard, createTag, uploadCardFile, deleteCardFile, createCardLink, deleteCardLink } from '../../store/slices/kanbanSlice';
+import FilePreview from '../FilePreview';
 
 interface KanbanCardModalProps {
   open: boolean;
@@ -79,6 +83,8 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [newTagName, setNewTagName] = useState('');
   const [newTagColor, setNewTagColor] = useState('#3f51b5');
+  const [newLinkUrl, setNewLinkUrl] = useState('');
+  const [isDragOver, setIsDragOver] = useState(false);
 
   useEffect(() => {
     if (card) {
@@ -179,6 +185,49 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
 
   const handleDeleteChecklistItem = (itemId: string) => {
     setChecklist(prev => prev.filter(item => item.id !== itemId));
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && card) {
+      dispatch(uploadCardFile({ cardId: card.id, file }) as any);
+    }
+  };
+
+  const handleDeleteFile = (fileId: number) => {
+    dispatch(deleteCardFile(fileId) as any);
+  };
+
+  const handleAddLink = () => {
+    if (newLinkUrl.trim() && card) {
+      dispatch(createCardLink({ cardId: card.id, url: newLinkUrl.trim() }) as any);
+      setNewLinkUrl('');
+    }
+  };
+
+  const handleDeleteLink = (linkId: number) => {
+    dispatch(deleteCardLink(linkId) as any);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    files.forEach(file => {
+      if (card) {
+        dispatch(uploadCardFile({ cardId: card.id, file }) as any);
+      }
+    });
   };
 
   return (
@@ -385,34 +434,231 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
 
           <Divider />
 
-          {/* Files and Links sections (placeholder for now) */}
-          <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              Pièces jointes
-            </Typography>
-            <Button variant="outlined" size="small" disabled>
-              Ajouter un fichier (à venir)
-            </Button>
-          </Box>
+          {/* Files Section */}
+          <Accordion>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <AttachFileIcon />
+                <Typography variant="subtitle2">
+                  Pièces jointes ({card?.files?.length || 0})
+                </Typography>
+              </Box>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Stack spacing={2}>
+                {/* Drag & Drop Zone */}
+                <Box
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  sx={{
+                    border: 2,
+                    borderStyle: 'dashed',
+                    borderColor: isDragOver ? theme.palette.primary.main : 'divider',
+                    borderRadius: 2,
+                    p: 3,
+                    textAlign: 'center',
+                    backgroundColor: isDragOver ? alpha(theme.palette.primary.main, 0.05) : 'transparent',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <AttachFileIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Glissez-déposez vos fichiers ici ou
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    startIcon={<AddIcon />}
+                    size="small"
+                  >
+                    Parcourir
+                    <input
+                      type="file"
+                      hidden
+                      onChange={handleFileUpload}
+                      accept="image/*,application/pdf,.doc,.docx,.txt"
+                      multiple
+                    />
+                  </Button>
+                </Box>
 
-          <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              Liens
-            </Typography>
-            <Button variant="outlined" size="small" disabled>
-              Ajouter un lien (à venir)
-            </Button>
-          </Box>
+                {/* Files grid */}
+                {card?.files && card.files.length > 0 && (
+                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 2 }}>
+                    {card.files.map((file) => (
+                      <Box key={file.id} sx={{ position: 'relative' }}>
+                        <FilePreview file={file} />
+                        <IconButton 
+                          size="small" 
+                          onClick={() => handleDeleteFile(file.id)}
+                          sx={{
+                            position: 'absolute',
+                            top: 4,
+                            right: 4,
+                            bgcolor: 'rgba(0,0,0,0.5)',
+                            color: 'white',
+                            '&:hover': {
+                              bgcolor: theme.palette.error.main,
+                            },
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+              </Stack>
+            </AccordionDetails>
+          </Accordion>
+
+          {/* Links Section */}
+          <Accordion>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <LinkIcon />
+                <Typography variant="subtitle2">
+                  Liens ({card?.links?.length || 0})
+                </Typography>
+              </Box>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Stack spacing={2}>
+                {/* Add link */}
+                <Stack direction="row" spacing={1}>
+                  <TextField
+                    size="small"
+                    placeholder="https://example.com"
+                    value={newLinkUrl}
+                    onChange={(e) => setNewLinkUrl(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddLink()}
+                    sx={{ flexGrow: 1 }}
+                    type="url"
+                  />
+                  <Button 
+                    variant="outlined" 
+                    size="small" 
+                    onClick={handleAddLink}
+                    disabled={!newLinkUrl.trim()}
+                  >
+                    <AddIcon />
+                  </Button>
+                </Stack>
+
+                {/* Links list */}
+                {card?.links && card.links.length > 0 && (
+                  <Stack spacing={1}>
+                    {card.links.map((link) => (
+                      <Box
+                        key={link.id}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 2,
+                          p: 2,
+                          border: 1,
+                          borderColor: 'divider',
+                          borderRadius: 2,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          '&:hover': {
+                            borderColor: theme.palette.primary.main,
+                            backgroundColor: theme.palette.action.hover,
+                          },
+                        }}
+                        onClick={() => window.open(link.url, '_blank')}
+                      >
+                        {/* Favicon or icon */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40 }}>
+                          {link.faviconUrl ? (
+                            <img 
+                              src={link.faviconUrl} 
+                              alt="favicon"
+                              style={{ width: 24, height: 24 }}
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.nextElementSibling?.setAttribute('style', 'display: block');
+                              }}
+                            />
+                          ) : null}
+                          <LinkIcon 
+                            sx={{ 
+                              fontSize: 24, 
+                              color: theme.palette.primary.main,
+                              display: link.faviconUrl ? 'none' : 'block',
+                            }} 
+                          />
+                        </Box>
+
+                        {/* Link info */}
+                        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                          <Typography 
+                            variant="subtitle2" 
+                            sx={{ 
+                              fontWeight: 'medium',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {link.title || 'Lien sans titre'}
+                          </Typography>
+                          <Typography 
+                            variant="caption" 
+                            color="text.secondary"
+                            sx={{
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              display: 'block',
+                            }}
+                          >
+                            {link.url}
+                          </Typography>
+                        </Box>
+
+                        {/* Delete button */}
+                        <IconButton 
+                          size="small" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteLink(link.id);
+                          }}
+                          sx={{
+                            color: 'text.secondary',
+                            '&:hover': {
+                              color: theme.palette.error.main,
+                              backgroundColor: alpha(theme.palette.error.main, 0.1),
+                            },
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    ))}
+                  </Stack>
+                )}
+              </Stack>
+            </AccordionDetails>
+          </Accordion>
 
           {/* Comments section (placeholder) */}
-          <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              Commentaires
-            </Typography>
-            <Button variant="outlined" size="small" disabled>
-              Ajouter un commentaire (à venir)
-            </Button>
-          </Box>
+          <Accordion>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CommentIcon />
+                <Typography variant="subtitle2">
+                  Commentaires ({card?.comments?.length || 0})
+                </Typography>
+              </Box>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography variant="body2" color="text.secondary">
+                Fonctionnalité à venir : système de commentaires avec notifications
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
         </Stack>
       </DialogContent>
 

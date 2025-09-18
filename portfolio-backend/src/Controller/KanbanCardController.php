@@ -277,6 +277,43 @@ class KanbanCardController extends AbstractController
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
+    #[Route('/api/files/{id}', name: 'delete_card_file', methods: ['DELETE'])]
+    public function deleteFile(int $id): JsonResponse
+    {
+        $user = $this->getUser();
+        $file = $this->entityManager->getRepository(KanbanCardFile::class)->find($id);
+        
+        if (!$file || $file->getCard()->getColumn()->getKanban()->getOwner() !== $user) {
+            return new JsonResponse(['message' => 'File not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        // Supprimer le fichier physique
+        if (file_exists($file->getStoragePath())) {
+            unlink($file->getStoragePath());
+        }
+
+        $this->entityManager->remove($file);
+        $this->entityManager->flush();
+
+        return new JsonResponse(['message' => 'File deleted successfully']);
+    }
+
+    #[Route('/api/links/{id}', name: 'delete_card_link', methods: ['DELETE'])]
+    public function deleteLink(int $id): JsonResponse
+    {
+        $user = $this->getUser();
+        $link = $this->entityManager->getRepository(KanbanCardLink::class)->find($id);
+        
+        if (!$link || $link->getCard()->getColumn()->getKanban()->getOwner() !== $user) {
+            return new JsonResponse(['message' => 'Link not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $this->entityManager->remove($link);
+        $this->entityManager->flush();
+
+        return new JsonResponse(['message' => 'Link deleted successfully']);
+    }
+
     private function fetchUrlTitle(string $url): ?string
     {
         try {

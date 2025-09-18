@@ -47,6 +47,8 @@ security:
         - { path: ^/api/kanbans, roles: ROLE_ADMIN }
         - { path: ^/api/columns, roles: ROLE_ADMIN }
         - { path: ^/api/cards, roles: ROLE_ADMIN }
+        - { path: ^/api/files, roles: ROLE_ADMIN }
+        - { path: ^/api/links, roles: ROLE_ADMIN }
         - { path: ^/api/calendar, roles: ROLE_ADMIN }
         - { path: ^/api/admin, roles: ROLE_ADMIN }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
