@@ -65,8 +65,6 @@ export class ExportService {
         useCORS: true,
         allowTaint: true,
         backgroundColor: 'white',
-        width: 794,
-        height: exportContainer.scrollHeight,
       });
 
       // Remove temporary container
@@ -170,8 +168,6 @@ export class ExportService {
         useCORS: true,
         allowTaint: true,
         backgroundColor: 'white',
-        width: 800,
-        height: exportContainer.scrollHeight + 80, // Add some padding
       });
 
       // Remove temporary container
