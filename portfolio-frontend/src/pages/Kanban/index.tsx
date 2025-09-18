@@ -237,6 +237,7 @@ const Kanban: React.FC = () => {
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => setCreateDialogOpen(true)}
+            sx={{ color: 'white' }}
           >
             Nouveau tableau
           </Button>
@@ -373,6 +374,7 @@ const Kanban: React.FC = () => {
               startIcon={<AddIcon />}
               onClick={() => setCreateDialogOpen(true)}
               size="large"
+              sx={{ color: 'white' }}
             >
               Créer mon premier tableau
             </Button>
@@ -397,7 +399,12 @@ const Kanban: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setCreateDialogOpen(false)}>Annuler</Button>
-          <Button onClick={handleCreateBoard} variant="contained" disabled={!newBoardName.trim()}>
+          <Button 
+            onClick={handleCreateBoard} 
+            variant="contained" 
+            disabled={!newBoardName.trim()}
+            sx={{ color: 'white' }}
+          >
             Créer
           </Button>
         </DialogActions>
@@ -419,7 +426,12 @@ const Kanban: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEditBoardDialogOpen(false)}>Annuler</Button>
-          <Button onClick={confirmEditBoard} variant="contained" disabled={!editBoardName.trim()}>
+          <Button 
+            onClick={confirmEditBoard} 
+            variant="contained" 
+            disabled={!editBoardName.trim()}
+            sx={{ color: 'white' }}
+          >
             Renommer
           </Button>
         </DialogActions>
@@ -435,7 +447,12 @@ const Kanban: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)}>Annuler</Button>
-          <Button onClick={confirmDelete} color="error" variant="contained">
+          <Button 
+            onClick={confirmDelete} 
+            color="error" 
+            variant="contained"
+            sx={{ color: 'white' }}
+          >
             Supprimer définitivement
           </Button>
         </DialogActions>

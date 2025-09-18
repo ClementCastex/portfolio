@@ -236,7 +236,12 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({ column, onCreateCard, onEdi
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEditDialogOpen(false)}>Annuler</Button>
-          <Button onClick={confirmEditColumn} variant="contained" disabled={!newColumnName.trim()}>
+          <Button 
+            onClick={confirmEditColumn} 
+            variant="contained" 
+            disabled={!newColumnName.trim()}
+            sx={{ color: 'white' }}
+          >
             Renommer
           </Button>
         </DialogActions>
@@ -257,7 +262,12 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({ column, onCreateCard, onEdi
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)}>Annuler</Button>
-          <Button onClick={confirmDeleteColumn} color="error" variant="contained">
+          <Button 
+            onClick={confirmDeleteColumn} 
+            color="error" 
+            variant="contained"
+            sx={{ color: 'white' }}
+          >
             Supprimer définitivement
           </Button>
         </DialogActions>

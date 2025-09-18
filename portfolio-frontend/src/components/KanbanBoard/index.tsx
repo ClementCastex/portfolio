@@ -168,7 +168,12 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ board }) => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setColumnModalOpen(false)}>Annuler</Button>
-          <Button onClick={handleCreateColumn} variant="contained" disabled={!newColumnName.trim()}>
+          <Button 
+            onClick={handleCreateColumn} 
+            variant="contained" 
+            disabled={!newColumnName.trim()}
+            sx={{ color: 'white' }}
+          >
             Ajouter
           </Button>
         </DialogActions>

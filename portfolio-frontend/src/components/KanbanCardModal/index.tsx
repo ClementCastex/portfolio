@@ -239,6 +239,7 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
           variant="contained" 
           startIcon={<SaveIcon />}
           disabled={!title.trim()}
+          sx={{ color: 'white' }}
         >
           {card ? 'Modifier' : 'Créer'}
         </Button>
@@ -318,6 +319,7 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
             onClick={handleCreateTag} 
             variant="contained"
             disabled={!newTagName.trim()}
+            sx={{ color: 'white' }}
           >
             Créer
           </Button>
