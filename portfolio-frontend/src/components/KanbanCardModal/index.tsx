@@ -12,15 +12,22 @@ import {
   Chip,
   IconButton,
   Divider,
+  Dialog as ColorDialog,
+  DialogTitle as ColorDialogTitle,
+  DialogContent as ColorDialogContent,
+  DialogActions as ColorDialogActions,
+  Grid,
 } from '@mui/material';
 import {
   Close as CloseIcon,
   Save as SaveIcon,
   CalendarToday as CalendarIcon,
+  Add as AddIcon,
+  Palette as PaletteIcon,
 } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import { KanbanCard, KanbanBoard as KanbanBoardType } from '../../types';
-import { createCard, updateCard } from '../../store/slices/kanbanSlice';
+import { createCard, updateCard, createTag } from '../../store/slices/kanbanSlice';
 
 interface KanbanCardModalProps {
   open: boolean;
@@ -43,6 +50,9 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
+  const [tagDialogOpen, setTagDialogOpen] = useState(false);
+  const [newTagName, setNewTagName] = useState('');
+  const [newTagColor, setNewTagColor] = useState('#3f51b5');
 
   useEffect(() => {
     if (card) {
@@ -57,6 +67,13 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
       setSelectedTags([]);
     }
   }, [card, open]);
+
+  const predefinedColors = [
+    '#f44336', '#e91e63', '#9c27b0', '#673ab7',
+    '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4',
+    '#009688', '#4caf50', '#8bc34a', '#cddc39',
+    '#ffeb3b', '#ffc107', '#ff9800', '#ff5722',
+  ];
 
   const handleSave = () => {
     const cardData = {
@@ -83,6 +100,23 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
         ? prev.filter(id => id !== tagId)
         : [...prev, tagId]
     );
+  };
+
+  const handleCreateTag = () => {
+    if (newTagName.trim()) {
+      dispatch(createTag({
+        kanbanId: board.id,
+        name: newTagName.trim(),
+        colorHex: newTagColor,
+      }) as any).then((result: any) => {
+        if (result.payload) {
+          setSelectedTags(prev => [...prev, result.payload.id]);
+        }
+      });
+      setTagDialogOpen(false);
+      setNewTagName('');
+      setNewTagColor('#3f51b5');
+    }
   };
 
   return (
@@ -140,9 +174,16 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
 
           {/* Tags */}
           <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              Tags
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+              <Typography variant="subtitle2">Tags</Typography>
+              <Button
+                size="small"
+                startIcon={<AddIcon />}
+                onClick={() => setTagDialogOpen(true)}
+              >
+                Nouveau tag
+              </Button>
+            </Box>
             <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
               {board.tags?.map((tag) => (
                 <Chip
@@ -162,7 +203,7 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
               ))}
               {(!board.tags || board.tags.length === 0) && (
                 <Typography variant="caption" color="text.secondary">
-                  Aucun tag disponible. Créez-en dans les paramètres du tableau.
+                  Aucun tag disponible. Créez votre premier tag !
                 </Typography>
               )}
             </Stack>
@@ -202,6 +243,86 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
           {card ? 'Modifier' : 'Créer'}
         </Button>
       </DialogActions>
+
+      {/* Create Tag Dialog */}
+      <ColorDialog open={tagDialogOpen} onClose={() => setTagDialogOpen(false)} maxWidth="sm" fullWidth>
+        <ColorDialogTitle>Créer un nouveau tag</ColorDialogTitle>
+        <ColorDialogContent>
+          <Stack spacing={3}>
+            <TextField
+              autoFocus
+              label="Nom du tag"
+              value={newTagName}
+              onChange={(e) => setNewTagName(e.target.value)}
+              fullWidth
+              placeholder="Ex: Urgent, En cours, Terminé..."
+            />
+            
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 2 }}>
+                Couleur
+              </Typography>
+              <Grid container spacing={1}>
+                {predefinedColors.map((color) => (
+                  <Grid item key={color}>
+                    <IconButton
+                      onClick={() => setNewTagColor(color)}
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        backgroundColor: color,
+                        border: newTagColor === color ? 3 : 1,
+                        borderColor: newTagColor === color ? 'primary.main' : 'divider',
+                        '&:hover': {
+                          backgroundColor: color,
+                          opacity: 0.8,
+                        },
+                      }}
+                    >
+                      {newTagColor === color && (
+                        <PaletteIcon sx={{ color: 'white', fontSize: 20 }} />
+                      )}
+                    </IconButton>
+                  </Grid>
+                ))}
+              </Grid>
+              
+              <TextField
+                label="Couleur personnalisée (hex)"
+                value={newTagColor}
+                onChange={(e) => setNewTagColor(e.target.value)}
+                size="small"
+                sx={{ mt: 2 }}
+                InputProps={{
+                  startAdornment: (
+                    <Box
+                      sx={{
+                        width: 20,
+                        height: 20,
+                        backgroundColor: newTagColor,
+                        borderRadius: 1,
+                        mr: 1,
+                        border: 1,
+                        borderColor: 'divider',
+                      }}
+                    />
+                  ),
+                }}
+              />
+            </Box>
+          </Stack>
+        </ColorDialogContent>
+        <ColorDialogActions>
+          <Button onClick={() => setTagDialogOpen(false)}>Annuler</Button>
+          <Button 
+            onClick={handleCreateTag} 
+            variant="contained"
+            disabled={!newTagName.trim()}
+          >
+            Créer
+          </Button>
+        </ColorDialogActions>
+      </ColorDialog>
     </Dialog>
   );
 };

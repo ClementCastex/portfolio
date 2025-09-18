@@ -128,6 +128,27 @@ export const deleteKanban = createAsyncThunk(
   }
 );
 
+export const createColumn = createAsyncThunk(
+  'kanban/createColumn',
+  async ({ kanbanId, ...columnData }: { kanbanId: number; name: string; position?: number }, { getState, rejectWithValue }) => {
+    try {
+      const { auth } = getState() as any;
+      if (!auth.token) throw new Error('No token');
+
+      const response = await fetch(`${API_BASE_URL}/api/kanbans/${kanbanId}/columns`, {
+        method: 'POST',
+        headers: getAuthHeaders(auth.token),
+        body: JSON.stringify(columnData),
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return await response.json();
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 export const createCard = createAsyncThunk(
   'kanban/createCard',
   async ({ columnId, ...cardData }: { columnId: number; title: string; descriptionHtml?: string; dueAt?: string; tagIds?: number[] }, { getState, rejectWithValue }) => {
@@ -160,6 +181,68 @@ export const updateCard = createAsyncThunk(
         method: 'PATCH',
         headers: getAuthHeaders(auth.token),
         body: JSON.stringify(cardData),
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return await response.json();
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const updateColumn = createAsyncThunk(
+  'kanban/updateColumn',
+  async ({ id, name }: { id: number; name: string }, { getState, rejectWithValue }) => {
+    try {
+      const { auth } = getState() as any;
+      if (!auth.token) throw new Error('No token');
+
+      const response = await fetch(`${API_BASE_URL}/api/columns/${id}`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(auth.token),
+        body: JSON.stringify({ name }),
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return await response.json();
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const deleteColumn = createAsyncThunk(
+  'kanban/deleteColumn',
+  async (id: number, { getState, rejectWithValue }) => {
+    try {
+      const { auth } = getState() as any;
+      if (!auth.token) throw new Error('No token');
+
+      const response = await fetch(`${API_BASE_URL}/api/columns/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(auth.token),
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return id;
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const createTag = createAsyncThunk(
+  'kanban/createTag',
+  async ({ kanbanId, name, colorHex }: { kanbanId: number; name: string; colorHex: string }, { getState, rejectWithValue }) => {
+    try {
+      const { auth } = getState() as any;
+      if (!auth.token) throw new Error('No token');
+
+      const response = await fetch(`${API_BASE_URL}/api/kanbans/${kanbanId}/tags`, {
+        method: 'POST',
+        headers: getAuthHeaders(auth.token),
+        body: JSON.stringify({ name, colorHex }),
       });
 
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -272,6 +355,27 @@ const kanbanSlice = createSlice({
           state.activeBoard = null;
         }
       })
+      // Create column
+      .addCase(createColumn.fulfilled, (state, action) => {
+        if (state.activeBoard) {
+          state.activeBoard.columns.push(action.payload);
+        }
+      })
+      // Update column
+      .addCase(updateColumn.fulfilled, (state, action) => {
+        if (state.activeBoard) {
+          const columnIndex = state.activeBoard.columns.findIndex(col => col.id === action.payload.id);
+          if (columnIndex !== -1) {
+            state.activeBoard.columns[columnIndex] = action.payload;
+          }
+        }
+      })
+      // Delete column
+      .addCase(deleteColumn.fulfilled, (state, action) => {
+        if (state.activeBoard) {
+          state.activeBoard.columns = state.activeBoard.columns.filter(col => col.id !== action.payload);
+        }
+      })
       // Create card
       .addCase(createCard.fulfilled, (state, action) => {
         if (state.activeBoard) {
@@ -292,6 +396,12 @@ const kanbanSlice = createSlice({
               break;
             }
           }
+        }
+      })
+      // Create tag
+      .addCase(createTag.fulfilled, (state, action) => {
+        if (state.activeBoard) {
+          state.activeBoard.tags.push(action.payload);
         }
       });
   },

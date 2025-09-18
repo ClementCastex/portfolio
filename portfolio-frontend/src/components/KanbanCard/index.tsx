@@ -21,14 +21,16 @@ import { KanbanCard as KanbanCardType } from '../../types';
 
 interface KanbanCardProps {
   card: KanbanCardType;
+  columnId: number;
   onEdit: () => void;
 }
 
-const KanbanCard: React.FC<KanbanCardProps> = ({ card, onEdit }) => {
+const KanbanCard: React.FC<KanbanCardProps> = ({ card, columnId, onEdit }) => {
   const theme = useTheme();
 
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData('cardId', card.id.toString());
+    e.dataTransfer.setData('fromColumnId', columnId.toString());
     e.dataTransfer.effectAllowed = 'move';
   };
 

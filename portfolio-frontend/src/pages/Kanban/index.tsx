@@ -36,7 +36,9 @@ import { useNavigate } from 'react-router-dom';
 import { RootState } from '../../store';
 import {
   fetchKanbans,
+  fetchKanban,
   createKanban,
+  updateKanban,
   deleteKanban,
   setActiveBoard,
 } from '../../store/slices/kanbanSlice';
@@ -57,6 +59,8 @@ const Kanban: React.FC = () => {
   const [newBoardName, setNewBoardName] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [boardToDelete, setBoardToDelete] = useState<number | null>(null);
+  const [editBoardDialogOpen, setEditBoardDialogOpen] = useState(false);
+  const [editBoardName, setEditBoardName] = useState('');
 
   // Load kanbans on mount
   useEffect(() => {
@@ -74,8 +78,13 @@ const Kanban: React.FC = () => {
   };
 
   const handleOpenBoard = (board: any) => {
-    dispatch(setActiveBoard(board));
-    setView('kanban');
+    // Recharger le tableau complet avec toutes les données
+    dispatch(fetchKanban(board.id) as any).then((result: any) => {
+      if (result.payload) {
+        dispatch(setActiveBoard(result.payload));
+        setView('kanban');
+      }
+    });
   };
 
   const handleDeleteBoard = (boardId: number) => {
@@ -88,6 +97,21 @@ const Kanban: React.FC = () => {
       dispatch(deleteKanban(boardToDelete) as any);
       setDeleteDialogOpen(false);
       setBoardToDelete(null);
+    }
+  };
+
+  const handleEditBoard = () => {
+    if (activeBoard) {
+      setEditBoardName(activeBoard.name);
+      setEditBoardDialogOpen(true);
+    }
+  };
+
+  const confirmEditBoard = () => {
+    if (activeBoard && editBoardName.trim()) {
+      dispatch(updateKanban({ id: activeBoard.id, name: editBoardName.trim() }) as any);
+      setEditBoardDialogOpen(false);
+      setEditBoardName('');
     }
   };
 
@@ -129,6 +153,13 @@ const Kanban: React.FC = () => {
             <Typography variant="h5" sx={{ color: 'white' }}>
               {activeBoard.name}
             </Typography>
+            <IconButton 
+              size="small" 
+              onClick={handleEditBoard}
+              sx={{ color: 'white' }}
+            >
+              <EditIcon />
+            </IconButton>
           </Box>
           <Button
             variant="outlined"
@@ -261,7 +292,8 @@ const Kanban: React.FC = () => {
                       size="small"
                       onClick={(e) => {
                         e.stopPropagation();
-                        // TODO: Edit board name
+                        setEditBoardName(board.name);
+                        setEditBoardDialogOpen(true);
                       }}
                     >
                       <EditIcon fontSize="small" />
@@ -359,6 +391,28 @@ const Kanban: React.FC = () => {
           <Button onClick={() => setCreateDialogOpen(false)}>Annuler</Button>
           <Button onClick={handleCreateBoard} variant="contained" disabled={!newBoardName.trim()}>
             Créer
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Board Dialog */}
+      <Dialog open={editBoardDialogOpen} onClose={() => setEditBoardDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Renommer le tableau</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Nom du tableau"
+            fullWidth
+            variant="outlined"
+            value={editBoardName}
+            onChange={(e) => setEditBoardName(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditBoardDialogOpen(false)}>Annuler</Button>
+          <Button onClick={confirmEditBoard} variant="contained" disabled={!editBoardName.trim()}>
+            Renommer
           </Button>
         </DialogActions>
       </Dialog>

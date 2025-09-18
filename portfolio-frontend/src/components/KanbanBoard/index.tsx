@@ -6,6 +6,11 @@ import {
   Button,
   IconButton,
   Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
   useTheme,
   alpha,
 } from '@mui/material';
@@ -17,6 +22,7 @@ import { useDispatch } from 'react-redux';
 import { KanbanBoard as KanbanBoardType } from '../../types';
 import KanbanColumn from '../KanbanColumn';
 import KanbanCardModal from '../KanbanCardModal';
+import { createColumn, updateColumn, deleteColumn, updateCard, moveCard } from '../../store/slices/kanbanSlice';
 
 interface KanbanBoardProps {
   board: KanbanBoardType;
@@ -29,6 +35,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ board }) => {
   const [cardModalOpen, setCardModalOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
   const [selectedColumnId, setSelectedColumnId] = useState<number | null>(null);
+  const [columnModalOpen, setColumnModalOpen] = useState(false);
+  const [newColumnName, setNewColumnName] = useState('');
 
   const handleCreateCard = (columnId: number) => {
     setSelectedColumnId(columnId);
@@ -39,6 +47,38 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ board }) => {
   const handleEditCard = (card: any) => {
     setSelectedCard(card);
     setCardModalOpen(true);
+  };
+
+  const handleCreateColumn = () => {
+    if (newColumnName.trim()) {
+      dispatch(createColumn({ 
+        kanbanId: board.id, 
+        name: newColumnName.trim(),
+        position: board.columns.length 
+      }) as any);
+      setColumnModalOpen(false);
+      setNewColumnName('');
+    }
+  };
+
+  const handleMoveCard = (moveData: { cardId: number; fromColumnId: number; toColumnId: number; newPosition: number }) => {
+    // Optimistic update
+    dispatch(moveCard(moveData));
+    
+    // API call to persist the change
+    dispatch(updateCard({
+      id: moveData.cardId,
+      columnId: moveData.toColumnId,
+      position: moveData.newPosition,
+    }) as any);
+  };
+
+  const handleEditColumn = (columnId: number, newName: string) => {
+    dispatch(updateColumn({ id: columnId, name: newName }) as any);
+  };
+
+  const handleDeleteColumn = (columnId: number) => {
+    dispatch(deleteColumn(columnId) as any);
   };
 
   return (
@@ -60,6 +100,9 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ board }) => {
             column={column}
             onCreateCard={() => handleCreateCard(column.id)}
             onEditCard={handleEditCard}
+            onMoveCard={handleMoveCard}
+            onEditColumn={handleEditColumn}
+            onDeleteColumn={handleDeleteColumn}
           />
         ))}
 
@@ -80,10 +123,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ board }) => {
               backgroundColor: alpha(theme.palette.primary.main, 0.05),
             },
           }}
-          onClick={() => {
-            // TODO: Add new column
-            console.log('Add new column');
-          }}
+          onClick={() => setColumnModalOpen(true)}
         >
           <Box
             sx={{
@@ -110,6 +150,29 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ board }) => {
         columnId={selectedColumnId}
         board={board}
       />
+
+      {/* Add Column Modal */}
+      <Dialog open={columnModalOpen} onClose={() => setColumnModalOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Ajouter une colonne</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Nom de la colonne"
+            fullWidth
+            variant="outlined"
+            value={newColumnName}
+            onChange={(e) => setNewColumnName(e.target.value)}
+            placeholder="Ex: En révision, Tests, Déployé..."
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setColumnModalOpen(false)}>Annuler</Button>
+          <Button onClick={handleCreateColumn} variant="contained" disabled={!newColumnName.trim()}>
+            Ajouter
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
