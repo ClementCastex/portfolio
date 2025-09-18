@@ -418,7 +418,25 @@ const kanbanSlice = createSlice({
       })
       // Fetch single kanban
       .addCase(fetchKanban.fulfilled, (state, action) => {
-        state.activeBoard = action.payload;
+        // Ensure all card properties are properly initialized
+        const board = action.payload;
+        if (board.columns) {
+          board.columns.forEach((column: any) => {
+            if (column.cards) {
+              column.cards.forEach((card: any) => {
+                card.tags = card.tags || [];
+                card.files = card.files || [];
+                card.links = card.links || [];
+                card.comments = card.comments || [];
+                card.checklist = card.checklist || [];
+                card.assignedUserIds = card.assignedUserIds || [];
+                card.checklistProgress = card.checklistProgress || { completed: 0, total: 0, percentage: 0 };
+                card.priorityColor = card.priorityColor || '#9e9e9e';
+              });
+            }
+          });
+        }
+        state.activeBoard = board;
       })
       // Create kanban
       .addCase(createKanban.fulfilled, (state, action) => {
@@ -468,7 +486,17 @@ const kanbanSlice = createSlice({
         if (state.activeBoard) {
           const column = state.activeBoard.columns.find(col => col.id === action.meta.arg.columnId);
           if (column) {
-            column.cards.push(action.payload);
+            const card = action.payload;
+            // Ensure all properties are initialized
+            card.tags = card.tags || [];
+            card.files = card.files || [];
+            card.links = card.links || [];
+            card.comments = card.comments || [];
+            card.checklist = card.checklist || [];
+            card.assignedUserIds = card.assignedUserIds || [];
+            card.checklistProgress = card.checklistProgress || { completed: 0, total: 0, percentage: 0 };
+            card.priorityColor = card.priorityColor || '#9e9e9e';
+            column.cards.push(card);
           }
         }
       })

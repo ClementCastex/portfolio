@@ -343,6 +343,31 @@ class KanbanCard
         return $this->dueAt && $this->dueAt < new \DateTimeImmutable();
     }
 
+    // Ensure arrays are always returned as arrays, not null
+    #[Groups(['kanban:read', 'card:read'])]
+    public function getTagsArray(): array
+    {
+        return $this->tags->toArray();
+    }
+
+    #[Groups(['kanban:read', 'card:read'])]
+    public function getFilesArray(): array
+    {
+        return $this->files->toArray();
+    }
+
+    #[Groups(['kanban:read', 'card:read'])]
+    public function getLinksArray(): array
+    {
+        return $this->links->toArray();
+    }
+
+    #[Groups(['kanban:read', 'card:read'])]
+    public function getCommentsArray(): array
+    {
+        return $this->comments->toArray();
+    }
+
     #[Groups(['kanban:read', 'card:read'])]
     public function getChecklistProgress(): array
     {

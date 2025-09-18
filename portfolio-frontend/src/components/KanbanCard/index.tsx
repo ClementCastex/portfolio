@@ -125,7 +125,7 @@ const KanbanCard: React.FC<KanbanCardProps> = ({ card, columnId, onEdit }) => {
         )}
 
         {/* Checklist Progress */}
-        {card.checklist && card.checklist.length > 0 && (
+        {card.checklist && Array.isArray(card.checklist) && card.checklist.length > 0 && (
           <Box sx={{ mb: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
               <ChecklistIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
@@ -151,7 +151,7 @@ const KanbanCard: React.FC<KanbanCardProps> = ({ card, columnId, onEdit }) => {
         )}
 
         {/* Tags */}
-        {card.tags && card.tags.length > 0 && (
+        {card.tags && Array.isArray(card.tags) && card.tags.length > 0 && (
           <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
             {card.tags.slice(0, 3).map((tag) => (
               <Chip
@@ -185,7 +185,7 @@ const KanbanCard: React.FC<KanbanCardProps> = ({ card, columnId, onEdit }) => {
         )}
 
         {/* Assigned Users */}
-        {card.assignedUserIds && card.assignedUserIds.length > 0 && (
+        {card.assignedUserIds && Array.isArray(card.assignedUserIds) && card.assignedUserIds.length > 0 && (
           <Box sx={{ mb: 1 }}>
             <AvatarGroup max={3} sx={{ justifyContent: 'flex-start' }}>
               {card.assignedUserIds.map((userId, index) => (
@@ -277,28 +277,28 @@ const KanbanCard: React.FC<KanbanCardProps> = ({ card, columnId, onEdit }) => {
 
           {/* Attachments, links, and comments count */}
           <Stack direction="row" spacing={0.5}>
-            {card.files && card.files.length > 0 && (
+            {card.files && Array.isArray(card.files) && card.files.length > 0 && (
               <Tooltip title={`${card.files.length} pièce(s) jointe(s)`}>
                 <Badge badgeContent={card.files.length} color="primary">
                   <AttachFileIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                 </Badge>
               </Tooltip>
             )}
-            {card.links && card.links.length > 0 && (
+            {card.links && Array.isArray(card.links) && card.links.length > 0 && (
               <Tooltip title={`${card.links.length} lien(s)`}>
                 <Badge badgeContent={card.links.length} color="secondary">
                   <LinkIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                 </Badge>
               </Tooltip>
             )}
-            {card.comments && card.comments.length > 0 && (
+            {card.comments && Array.isArray(card.comments) && card.comments.length > 0 && (
               <Tooltip title={`${card.comments.length} commentaire(s)`}>
                 <Badge badgeContent={card.comments.length} color="info">
                   <CommentIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                 </Badge>
               </Tooltip>
             )}
-            {card.checklist && card.checklist.length > 0 && (
+            {card.checklist && Array.isArray(card.checklist) && card.checklist.length > 0 && (
               <Tooltip title={`${card.checklistProgress?.completed || 0}/${card.checklistProgress?.total || 0} tâches`}>
                 <Badge 
                   badgeContent={`${card.checklistProgress?.completed || 0}/${card.checklistProgress?.total || 0}`} 

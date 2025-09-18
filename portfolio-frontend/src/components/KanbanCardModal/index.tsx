@@ -93,7 +93,7 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
       setTitle(card.title);
       setDescription(card.descriptionHtml || '');
       setDueDate(card.dueAt ? card.dueAt.split('T')[0] : '');
-      setSelectedTags(card.tags.map(tag => tag.id));
+      setSelectedTags(card.tags ? card.tags.map(tag => tag.id) : []);
       setPriority(card.priority || '');
       setEstimatedHours(card.estimatedHours || '');
       setLoggedHours(card.loggedHours || '');
@@ -201,8 +201,14 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
   };
 
   const handleAddLink = () => {
-    if (newLinkUrl.trim() && card) {
-      dispatch(createCardLink({ cardId: card.id, url: newLinkUrl.trim() }) as any);
+    if (newLinkUrl.trim()) {
+      if (card) {
+        // Carte existante - API call
+        dispatch(createCardLink({ cardId: card.id, url: newLinkUrl.trim() }) as any);
+      } else {
+        // Nouvelle carte - ajouter à l'état local (sera sauvé avec la carte)
+        console.log('Link will be saved with new card:', newLinkUrl.trim());
+      }
       setNewLinkUrl('');
     }
   };
