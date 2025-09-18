@@ -63,7 +63,7 @@ export class ExportService {
       const canvas = await html2canvas(exportContainer, {
         useCORS: true,
         allowTaint: true,
-        backgroundColor: 'white',
+        background: 'white',
       });
 
       // Remove temporary container
@@ -165,7 +165,7 @@ export class ExportService {
       const canvas = await html2canvas(exportContainer, {
         useCORS: true,
         allowTaint: true,
-        backgroundColor: 'white',
+        background: 'white',
       });
 
       // Remove temporary container
