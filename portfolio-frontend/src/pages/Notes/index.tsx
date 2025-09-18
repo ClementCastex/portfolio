@@ -167,7 +167,10 @@ const Notes: React.FC = () => {
             {sidebarOpen ? <MenuOpenIcon /> : <MenuIcon />}
           </IconButton>
 
-          <Typography variant="h6" sx={{ mr: 2 }}>
+          <Typography variant="h6" sx={{ 
+            mr: 2, 
+            color: theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary 
+          }}>
             Bloc-notes
           </Typography>
 
@@ -242,7 +245,7 @@ const Notes: React.FC = () => {
             variant="contained"
             startIcon={<AddIcon />}
             onClick={handleCreateNote}
-            sx={{ ml: 2 }}
+            sx={{ ml: 2, color: 'white' }}
           >
             Nouvelle note
           </Button>
@@ -479,14 +482,15 @@ const Notes: React.FC = () => {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                 Créez une nouvelle note ou sélectionnez-en une existante dans la barre latérale.
               </Typography>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={handleCreateNote}
-                size="large"
-              >
-                Créer ma première note
-              </Button>
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={handleCreateNote}
+                  size="large"
+                  sx={{ color: 'white' }}
+                >
+                  Créer ma première note
+                </Button>
             </Box>
           )}
         </Box>
@@ -502,7 +506,12 @@ const Notes: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)}>Annuler</Button>
-          <Button onClick={confirmDelete} color="error" variant="contained">
+          <Button 
+            onClick={confirmDelete} 
+            color="error" 
+            variant="contained"
+            sx={{ color: 'white' }}
+          >
             Supprimer
           </Button>
         </DialogActions>

@@ -62,6 +62,7 @@ const NoteTagManager: React.FC = () => {
           startIcon={<AddIcon />}
           onClick={handleCreateTag}
           size="small"
+          sx={{ color: 'white' }}
         >
           Nouveau tag
         </Button>
@@ -154,7 +155,12 @@ const NoteTagManager: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialogOpen(false)}>Annuler</Button>
-          <Button onClick={handleSaveTag} variant="contained" disabled={!tagName.trim()}>
+          <Button 
+            onClick={handleSaveTag} 
+            variant="contained" 
+            disabled={!tagName.trim()}
+            sx={{ color: 'white' }}
+          >
             {editingTag ? 'Modifier' : 'Créer'}
           </Button>
         </DialogActions>
