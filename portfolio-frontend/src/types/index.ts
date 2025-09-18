@@ -112,6 +112,78 @@ export interface NoteTabProps {
   onDuplicate: () => void;
 }
 
+// Kanban system types
+export interface KanbanBoard {
+  id: number;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  columns: KanbanColumn[];
+  tags: KanbanCardTag[];
+}
+
+export interface KanbanColumn {
+  id: number;
+  name: string;
+  position: number;
+  cards: KanbanCard[];
+}
+
+export interface KanbanCard {
+  id: number;
+  title: string;
+  descriptionHtml: string;
+  dueAt: string | null;
+  position: number;
+  createdAt: string;
+  updatedAt: string;
+  tags: KanbanCardTag[];
+  files: KanbanCardFile[];
+  links: KanbanCardLink[];
+  isOverdue: boolean;
+}
+
+export interface KanbanCardTag {
+  id: number;
+  name: string;
+  colorHex: string;
+  createdAt: string;
+}
+
+export interface KanbanCardFile {
+  id: number;
+  filename: string;
+  mime: string;
+  size: number;
+  url: string;
+  isImage: boolean;
+  createdAt: string;
+}
+
+export interface KanbanCardLink {
+  id: number;
+  url: string;
+  title: string | null;
+  faviconUrl: string | null;
+  createdAt: string;
+}
+
+export interface KanbanState {
+  boards: KanbanBoard[];
+  activeBoard: KanbanBoard | null;
+  loading: boolean;
+  error: string | null;
+  draggedCard: KanbanCard | null;
+}
+
+export interface CalendarEvent {
+  id: number;
+  title: string;
+  date: string;
+  isOverdue: boolean;
+  card: KanbanCard;
+}
+
 export interface SocialButtonProps {
   href: string;
   icon: React.ReactElement;

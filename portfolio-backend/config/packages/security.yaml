@@ -44,6 +44,10 @@ security:
         - { path: ^/api/projects/\d+$, methods: [GET], roles: PUBLIC_ACCESS }
         - { path: ^/api/notes, roles: ROLE_ADMIN }
         - { path: ^/api/note-tags, roles: ROLE_ADMIN }
+        - { path: ^/api/kanbans, roles: ROLE_ADMIN }
+        - { path: ^/api/columns, roles: ROLE_ADMIN }
+        - { path: ^/api/cards, roles: ROLE_ADMIN }
+        - { path: ^/api/calendar, roles: ROLE_ADMIN }
         - { path: ^/api/admin, roles: ROLE_ADMIN }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
 

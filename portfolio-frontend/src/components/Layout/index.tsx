@@ -22,6 +22,7 @@ import {
   Palette as PaletteIcon,
   Dashboard as DashboardIcon,
   Notes as NotesIcon,
+  ViewKanban as KanbanIcon,
   ChevronRight as ChevronRightIcon,
   ChevronLeft as ChevronLeftIcon,
   Login as LoginIcon,
@@ -65,10 +66,11 @@ const Layout: React.FC<LayoutProps> = ({ children, onToggleTheme, isDarkMode }) 
     { text: 'Charte Graphique', icon: <PaletteIcon />, path: '/style-guide' },
   ];
 
-  // Ajouter le Dashboard et Notes uniquement pour les administrateurs
+  // Ajouter le Dashboard, Notes et Kanban uniquement pour les administrateurs
   if (user?.roles?.includes('ROLE_ADMIN')) {
     menuItems.push({ text: 'Dashboard', icon: <DashboardIcon />, path: '/admin' });
     menuItems.push({ text: 'Bloc-notes', icon: <NotesIcon />, path: '/notes' });
+    menuItems.push({ text: 'Kanban', icon: <KanbanIcon />, path: '/kanban' });
   }
 
   const handleLogout = () => {
