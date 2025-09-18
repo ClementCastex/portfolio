@@ -32,6 +32,7 @@ import {
   AccordionSummary,
   AccordionDetails,
   alpha,
+  useTheme,
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -70,6 +71,7 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
   board,
 }) => {
   const dispatch = useDispatch();
+  const theme = useTheme();
   
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
