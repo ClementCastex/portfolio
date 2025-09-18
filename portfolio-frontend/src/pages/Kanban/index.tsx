@@ -138,12 +138,19 @@ const Kanban: React.FC = () => {
           sx={{ 
             p: 2, 
             display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between',
+            alignItems: 'center',
+            justifyContent: 'center',
             borderRadius: 0,
+            position: 'relative',
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ 
+            position: 'absolute', 
+            left: 16, 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 2 
+          }}>
             <Button 
               variant="outlined" 
               onClick={() => setView('boards')}
@@ -163,15 +170,14 @@ const Kanban: React.FC = () => {
               <EditIcon />
             </IconButton>
           </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <Button
-              variant="outlined"
-              startIcon={<CalendarIcon />}
-              onClick={() => setView('calendar')}
-            >
-              Vue Calendrier
-            </Button>
-          </Box>
+          
+          <Button
+            variant="outlined"
+            startIcon={<CalendarIcon />}
+            onClick={() => setView('calendar')}
+          >
+            Vue Calendrier
+          </Button>
         </Paper>
         <KanbanBoard board={activeBoard} />
       </Box>
