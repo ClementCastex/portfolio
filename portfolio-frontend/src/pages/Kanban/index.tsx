@@ -193,22 +193,32 @@ const Kanban: React.FC = () => {
           sx={{ 
             p: 2, 
             display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between',
+            alignItems: 'center',
+            justifyContent: 'center',
             borderRadius: 0,
+            position: 'relative',
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ 
+            position: 'absolute', 
+            left: 16, 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 2 
+          }}>
             <Button 
               variant="outlined" 
               onClick={() => setView('boards')}
             >
               ← Retour aux tableaux
             </Button>
-            <Typography variant="h5" sx={{ color: 'white' }}>
+            <Typography variant="h5" sx={{ 
+              color: theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary 
+            }}>
               Calendrier des échéances
             </Typography>
           </Box>
+          
           <Button
             variant="outlined"
             startIcon={<KanbanIcon />}
