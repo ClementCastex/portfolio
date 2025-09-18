@@ -17,6 +17,20 @@ import {
   DialogContent as ColorDialogContent,
   DialogActions as ColorDialogActions,
   Grid,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Checkbox,
+  FormControlLabel,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ListItemSecondaryAction,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -24,6 +38,13 @@ import {
   CalendarToday as CalendarIcon,
   Add as AddIcon,
   Palette as PaletteIcon,
+  PriorityHigh as PriorityIcon,
+  AccessTime as TimeIcon,
+  CheckCircle as ChecklistIcon,
+  Delete as DeleteIcon,
+  ExpandMore as ExpandMoreIcon,
+  Comment as CommentIcon,
+  Person as PersonIcon,
 } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import { KanbanCard, KanbanBoard as KanbanBoardType } from '../../types';
@@ -50,6 +71,11 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
+  const [priority, setPriority] = useState<'high' | 'medium' | 'low' | ''>('');
+  const [estimatedHours, setEstimatedHours] = useState<number | ''>('');
+  const [loggedHours, setLoggedHours] = useState<number | ''>('');
+  const [checklist, setChecklist] = useState<Array<{id: string, text: string, completed: boolean}>>([]);
+  const [newChecklistItem, setNewChecklistItem] = useState('');
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [newTagName, setNewTagName] = useState('');
   const [newTagColor, setNewTagColor] = useState('#3f51b5');
@@ -60,11 +86,19 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
       setDescription(card.descriptionHtml || '');
       setDueDate(card.dueAt ? card.dueAt.split('T')[0] : '');
       setSelectedTags(card.tags.map(tag => tag.id));
+      setPriority(card.priority || '');
+      setEstimatedHours(card.estimatedHours || '');
+      setLoggedHours(card.loggedHours || '');
+      setChecklist(card.checklist || []);
     } else {
       setTitle('');
       setDescription('');
       setDueDate('');
       setSelectedTags([]);
+      setPriority('');
+      setEstimatedHours('');
+      setLoggedHours('');
+      setChecklist([]);
     }
   }, [card, open]);
 
@@ -81,6 +115,10 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
       descriptionHtml: description,
       dueAt: dueDate || undefined,
       tagIds: selectedTags,
+      priority: priority || undefined,
+      estimatedHours: estimatedHours ? Number(estimatedHours) : undefined,
+      loggedHours: loggedHours ? Number(loggedHours) : undefined,
+      checklist: checklist.length > 0 ? checklist : undefined,
     };
 
     if (card) {
@@ -117,6 +155,30 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
       setNewTagName('');
       setNewTagColor('#3f51b5');
     }
+  };
+
+  const handleAddChecklistItem = () => {
+    if (newChecklistItem.trim()) {
+      const newItem = {
+        id: Date.now().toString(),
+        text: newChecklistItem.trim(),
+        completed: false,
+      };
+      setChecklist(prev => [...prev, newItem]);
+      setNewChecklistItem('');
+    }
+  };
+
+  const handleToggleChecklistItem = (itemId: string) => {
+    setChecklist(prev => 
+      prev.map(item => 
+        item.id === itemId ? { ...item, completed: !item.completed } : item
+      )
+    );
+  };
+
+  const handleDeleteChecklistItem = (itemId: string) => {
+    setChecklist(prev => prev.filter(item => item.id !== itemId));
   };
 
   return (
@@ -160,17 +222,59 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
             placeholder="Décrivez votre tâche..."
           />
 
-          {/* Due Date */}
-          <TextField
-            label="Date d'échéance"
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            InputProps={{
-              startAdornment: <CalendarIcon sx={{ mr: 1, color: 'text.secondary' }} />,
-            }}
-          />
+          {/* Due Date and Priority */}
+          <Stack direction="row" spacing={2}>
+            <TextField
+              label="Date d'échéance"
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              InputProps={{
+                startAdornment: <CalendarIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+              }}
+              sx={{ flexGrow: 1 }}
+            />
+            
+            <FormControl sx={{ minWidth: 120 }}>
+              <InputLabel>Priorité</InputLabel>
+              <Select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as any)}
+                label="Priorité"
+                startAdornment={<PriorityIcon sx={{ mr: 1, color: 'text.secondary' }} />}
+              >
+                <MenuItem value="">Aucune</MenuItem>
+                <MenuItem value="low" sx={{ color: '#4caf50' }}>🟢 Basse</MenuItem>
+                <MenuItem value="medium" sx={{ color: '#ff9800' }}>🟡 Moyenne</MenuItem>
+                <MenuItem value="high" sx={{ color: '#f44336' }}>🔴 Haute</MenuItem>
+              </Select>
+            </FormControl>
+          </Stack>
+
+          {/* Time Tracking */}
+          <Stack direction="row" spacing={2}>
+            <TextField
+              label="Temps estimé (heures)"
+              type="number"
+              value={estimatedHours}
+              onChange={(e) => setEstimatedHours(e.target.value ? Number(e.target.value) : '')}
+              InputProps={{
+                startAdornment: <TimeIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+              }}
+              sx={{ flexGrow: 1 }}
+            />
+            <TextField
+              label="Temps passé (heures)"
+              type="number"
+              value={loggedHours}
+              onChange={(e) => setLoggedHours(e.target.value ? Number(e.target.value) : '')}
+              InputProps={{
+                startAdornment: <TimeIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+              }}
+              sx={{ flexGrow: 1 }}
+            />
+          </Stack>
 
           {/* Tags */}
           <Box>
@@ -209,6 +313,76 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
             </Stack>
           </Box>
 
+          {/* Checklist */}
+          <Accordion>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <ChecklistIcon />
+                <Typography variant="subtitle2">
+                  Checklist ({checklist.filter(item => item.completed).length}/{checklist.length})
+                </Typography>
+              </Box>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Stack spacing={2}>
+                {/* Add new checklist item */}
+                <Stack direction="row" spacing={1}>
+                  <TextField
+                    size="small"
+                    placeholder="Ajouter une tâche..."
+                    value={newChecklistItem}
+                    onChange={(e) => setNewChecklistItem(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddChecklistItem()}
+                    sx={{ flexGrow: 1 }}
+                  />
+                  <Button 
+                    variant="outlined" 
+                    size="small" 
+                    onClick={handleAddChecklistItem}
+                    disabled={!newChecklistItem.trim()}
+                  >
+                    <AddIcon />
+                  </Button>
+                </Stack>
+
+                {/* Checklist items */}
+                {checklist.length > 0 && (
+                  <List dense>
+                    {checklist.map((item) => (
+                      <ListItem key={item.id} sx={{ px: 0 }}>
+                        <ListItemIcon sx={{ minWidth: 36 }}>
+                          <Checkbox
+                            checked={item.completed}
+                            onChange={() => handleToggleChecklistItem(item.id)}
+                            size="small"
+                          />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={item.text}
+                          sx={{
+                            '& .MuiListItemText-primary': {
+                              textDecoration: item.completed ? 'line-through' : 'none',
+                              color: item.completed ? 'text.secondary' : 'text.primary',
+                            },
+                          }}
+                        />
+                        <ListItemSecondaryAction>
+                          <IconButton 
+                            size="small" 
+                            onClick={() => handleDeleteChecklistItem(item.id)}
+                            color="error"
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </ListItemSecondaryAction>
+                      </ListItem>
+                    ))}
+                  </List>
+                )}
+              </Stack>
+            </AccordionDetails>
+          </Accordion>
+
           <Divider />
 
           {/* Files and Links sections (placeholder for now) */}
@@ -227,6 +401,16 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
             </Typography>
             <Button variant="outlined" size="small" disabled>
               Ajouter un lien (à venir)
+            </Button>
+          </Box>
+
+          {/* Comments section (placeholder) */}
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              Commentaires
+            </Typography>
+            <Button variant="outlined" size="small" disabled>
+              Ajouter un commentaire (à venir)
             </Button>
           </Box>
         </Stack>

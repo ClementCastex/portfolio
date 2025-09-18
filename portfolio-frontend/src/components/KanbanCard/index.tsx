@@ -8,6 +8,10 @@ import {
   Stack,
   IconButton,
   Badge,
+  LinearProgress,
+  Avatar,
+  AvatarGroup,
+  Tooltip,
   useTheme,
   alpha,
 } from '@mui/material';
@@ -16,6 +20,11 @@ import {
   AttachFile as AttachFileIcon,
   Link as LinkIcon,
   Warning as WarningIcon,
+  PriorityHigh as PriorityIcon,
+  CheckCircle as ChecklistIcon,
+  AccessTime as TimeIcon,
+  Comment as CommentIcon,
+  Person as PersonIcon,
 } from '@mui/icons-material';
 import { KanbanCard as KanbanCardType } from '../../types';
 
@@ -55,6 +64,7 @@ const KanbanCard: React.FC<KanbanCardProps> = ({ card, columnId, onEdit }) => {
         cursor: 'pointer',
         transition: 'all 0.2s',
         backgroundColor: theme.palette.background.paper,
+        position: 'relative',
         '&:hover': {
           transform: 'translateY(-2px)',
           boxShadow: theme.shadows[4],
@@ -64,21 +74,37 @@ const KanbanCard: React.FC<KanbanCardProps> = ({ card, columnId, onEdit }) => {
         },
         border: card.isOverdue ? 2 : 1,
         borderColor: card.isOverdue ? theme.palette.error.main : 'divider',
+        borderLeft: card.priority ? `4px solid ${card.priorityColor}` : 'none',
       }}
     >
       <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-        {/* Card Title */}
-        <Typography 
-          variant="subtitle2" 
-          sx={{ 
-            fontWeight: 'bold', 
-            mb: 1,
-            color: theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary,
-            lineHeight: 1.3,
-          }}
-        >
-          {card.title}
-        </Typography>
+        {/* Card Header with Priority */}
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}>
+          <Typography 
+            variant="subtitle2" 
+            sx={{ 
+              fontWeight: 'bold', 
+              color: theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary,
+              lineHeight: 1.3,
+              flexGrow: 1,
+            }}
+          >
+            {card.title}
+          </Typography>
+          
+          {/* Priority indicator */}
+          {card.priority && (
+            <Tooltip title={`Priorité ${card.priority === 'high' ? 'haute' : card.priority === 'medium' ? 'moyenne' : 'basse'}`}>
+              <PriorityIcon 
+                sx={{ 
+                  fontSize: 16, 
+                  color: card.priorityColor,
+                  ml: 1,
+                }} 
+              />
+            </Tooltip>
+          )}
+        </Box>
 
         {/* Description preview */}
         {card.descriptionHtml && (
@@ -96,6 +122,32 @@ const KanbanCard: React.FC<KanbanCardProps> = ({ card, columnId, onEdit }) => {
               __html: card.descriptionHtml.replace(/<[^>]*>/g, '') 
             }}
           />
+        )}
+
+        {/* Checklist Progress */}
+        {card.checklist && card.checklist.length > 0 && (
+          <Box sx={{ mb: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+              <ChecklistIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+              <Typography variant="caption" color="text.secondary">
+                {card.checklistProgress?.completed || 0}/{card.checklistProgress?.total || 0}
+              </Typography>
+            </Box>
+            <LinearProgress
+              variant="determinate"
+              value={card.checklistProgress?.percentage || 0}
+              sx={{
+                height: 4,
+                borderRadius: 2,
+                backgroundColor: alpha(theme.palette.grey[500], 0.3),
+                '& .MuiLinearProgress-bar': {
+                  backgroundColor: card.checklistProgress?.percentage === 100 
+                    ? theme.palette.success.main 
+                    : theme.palette.primary.main,
+                },
+              }}
+            />
+          </Box>
         )}
 
         {/* Tags */}
@@ -130,6 +182,58 @@ const KanbanCard: React.FC<KanbanCardProps> = ({ card, columnId, onEdit }) => {
               />
             )}
           </Stack>
+        )}
+
+        {/* Assigned Users */}
+        {card.assignedUserIds && card.assignedUserIds.length > 0 && (
+          <Box sx={{ mb: 1 }}>
+            <AvatarGroup max={3} sx={{ justifyContent: 'flex-start' }}>
+              {card.assignedUserIds.map((userId, index) => (
+                <Tooltip key={userId} title={`Utilisateur ${userId}`}>
+                  <Avatar 
+                    sx={{ 
+                      width: 24, 
+                      height: 24, 
+                      fontSize: '0.7rem',
+                      bgcolor: theme.palette.primary.main,
+                    }}
+                  >
+                    <PersonIcon fontSize="small" />
+                  </Avatar>
+                </Tooltip>
+              ))}
+            </AvatarGroup>
+          </Box>
+        )}
+
+        {/* Time Tracking */}
+        {(card.estimatedHours || card.loggedHours) && (
+          <Box sx={{ mb: 1 }}>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <TimeIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+              <Typography variant="caption" color="text.secondary">
+                {card.loggedHours || 0}h
+                {card.estimatedHours && ` / ${card.estimatedHours}h`}
+              </Typography>
+              {card.estimatedHours && card.loggedHours && (
+                <LinearProgress
+                  variant="determinate"
+                  value={Math.min((card.loggedHours / card.estimatedHours) * 100, 100)}
+                  sx={{
+                    width: 40,
+                    height: 3,
+                    borderRadius: 2,
+                    backgroundColor: alpha(theme.palette.grey[500], 0.3),
+                    '& .MuiLinearProgress-bar': {
+                      backgroundColor: card.loggedHours > card.estimatedHours 
+                        ? theme.palette.warning.main 
+                        : theme.palette.info.main,
+                    },
+                  }}
+                />
+              )}
+            </Stack>
+          </Box>
         )}
 
         {/* Footer with metadata */}
@@ -171,17 +275,46 @@ const KanbanCard: React.FC<KanbanCardProps> = ({ card, columnId, onEdit }) => {
             </Box>
           )}
 
-          {/* Attachments and links count */}
+          {/* Attachments, links, and comments count */}
           <Stack direction="row" spacing={0.5}>
             {card.files && card.files.length > 0 && (
-              <Badge badgeContent={card.files.length} color="primary">
-                <AttachFileIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-              </Badge>
+              <Tooltip title={`${card.files.length} pièce(s) jointe(s)`}>
+                <Badge badgeContent={card.files.length} color="primary">
+                  <AttachFileIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                </Badge>
+              </Tooltip>
             )}
             {card.links && card.links.length > 0 && (
-              <Badge badgeContent={card.links.length} color="secondary">
-                <LinkIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-              </Badge>
+              <Tooltip title={`${card.links.length} lien(s)`}>
+                <Badge badgeContent={card.links.length} color="secondary">
+                  <LinkIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                </Badge>
+              </Tooltip>
+            )}
+            {card.comments && card.comments.length > 0 && (
+              <Tooltip title={`${card.comments.length} commentaire(s)`}>
+                <Badge badgeContent={card.comments.length} color="info">
+                  <CommentIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                </Badge>
+              </Tooltip>
+            )}
+            {card.checklist && card.checklist.length > 0 && (
+              <Tooltip title={`${card.checklistProgress?.completed || 0}/${card.checklistProgress?.total || 0} tâches`}>
+                <Badge 
+                  badgeContent={`${card.checklistProgress?.completed || 0}/${card.checklistProgress?.total || 0}`} 
+                  color={card.checklistProgress?.percentage === 100 ? 'success' : 'default'}
+                  sx={{
+                    '& .MuiBadge-badge': {
+                      fontSize: '0.6rem',
+                      minWidth: 'auto',
+                      height: 16,
+                      padding: '0 4px',
+                    },
+                  }}
+                >
+                  <ChecklistIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                </Badge>
+              </Tooltip>
             )}
           </Stack>
         </Box>

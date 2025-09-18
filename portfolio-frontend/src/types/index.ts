@@ -137,10 +137,22 @@ export interface KanbanCard {
   position: number;
   createdAt: string;
   updatedAt: string;
+  priority: 'high' | 'medium' | 'low' | null;
+  estimatedHours: number | null;
+  loggedHours: number | null;
+  checklist: ChecklistItem[] | null;
+  assignedUserIds: number[] | null;
   tags: KanbanCardTag[];
   files: KanbanCardFile[];
   links: KanbanCardLink[];
+  comments: KanbanCardComment[];
   isOverdue: boolean;
+  checklistProgress: {
+    completed: number;
+    total: number;
+    percentage: number;
+  };
+  priorityColor: string;
 }
 
 export interface KanbanCardTag {
@@ -174,6 +186,25 @@ export interface KanbanState {
   loading: boolean;
   error: string | null;
   draggedCard: KanbanCard | null;
+}
+
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  completed: boolean;
+  createdAt: string;
+}
+
+export interface KanbanCardComment {
+  id: number;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  author: {
+    id: number;
+    email: string;
+    // Add other user fields as needed
+  };
 }
 
 export interface CalendarEvent {

@@ -60,6 +60,22 @@ class KanbanCardController extends AbstractController
             $card->setDueAt(new \DateTimeImmutable($data['dueAt']));
         }
 
+        if (isset($data['priority'])) {
+            $card->setPriority($data['priority']);
+        }
+
+        if (isset($data['estimatedHours'])) {
+            $card->setEstimatedHours($data['estimatedHours']);
+        }
+
+        if (isset($data['loggedHours'])) {
+            $card->setLoggedHours($data['loggedHours']);
+        }
+
+        if (isset($data['checklist'])) {
+            $card->setChecklist($data['checklist']);
+        }
+
         // Gestion des tags
         if (isset($data['tagIds']) && is_array($data['tagIds'])) {
             foreach ($data['tagIds'] as $tagId) {
@@ -100,6 +116,22 @@ class KanbanCardController extends AbstractController
 
         if (isset($data['dueAt'])) {
             $card->setDueAt($data['dueAt'] ? new \DateTimeImmutable($data['dueAt']) : null);
+        }
+
+        if (isset($data['priority'])) {
+            $card->setPriority($data['priority']);
+        }
+
+        if (isset($data['estimatedHours'])) {
+            $card->setEstimatedHours($data['estimatedHours']);
+        }
+
+        if (isset($data['loggedHours'])) {
+            $card->setLoggedHours($data['loggedHours']);
+        }
+
+        if (isset($data['checklist'])) {
+            $card->setChecklist($data['checklist']);
         }
 
         if (isset($data['position'])) {
