@@ -50,6 +50,7 @@ import {
 } from '../../store/slices/notesSlice';
 import NoteEditor from '../../components/NoteEditor';
 import NoteTagManager from '../../components/NoteTagManager';
+import { ExportService } from '../../services/exportService';
 
 const Notes: React.FC = () => {
   const theme = useTheme();
@@ -116,14 +117,22 @@ const Notes: React.FC = () => {
     dispatch(duplicateNote(noteId) as any);
   };
 
-  const handleExportPDF = (noteId: number) => {
-    // TODO: Implement PDF export
-    console.log('Export PDF for note:', noteId);
+  const handleExportPDF = async (noteId: number) => {
+    const note = notes.find(n => n.id === noteId);
+    if (note) {
+      await ExportService.exportNoteToPDF(note);
+    }
   };
 
-  const handleExportPNG = (noteId: number) => {
-    // TODO: Implement PNG export
-    console.log('Export PNG for note:', noteId);
+  const handleExportPNG = async (noteId: number) => {
+    const note = notes.find(n => n.id === noteId);
+    if (note) {
+      await ExportService.exportNoteToPNG(note);
+    }
+  };
+
+  const handleExportAllNotes = async () => {
+    await ExportService.exportAllNotesToPDF(notes);
   };
 
   const filteredNotes = notes.filter(note => {
@@ -167,7 +176,10 @@ const Notes: React.FC = () => {
             {sidebarOpen ? <MenuOpenIcon /> : <MenuIcon />}
           </IconButton>
 
-          <Typography variant="h6" sx={{ mr: 2 }}>
+          <Typography variant="h6" sx={{ 
+            mr: 2, 
+            color: theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary 
+          }}>
             Bloc-notes
           </Typography>
 
@@ -178,18 +190,24 @@ const Notes: React.FC = () => {
                 onChange={(_, newValue) => dispatch(setActiveNote(newValue))}
                 variant="scrollable"
                 scrollButtons="auto"
-                sx={{ 
+                sx={{
                   flexGrow: 1,
                   '& .MuiTabs-indicator': {
                     backgroundColor: theme.palette.primary.main,
                   },
                   '& .MuiTab-root': {
-                    color: alpha(theme.palette.common.white, 0.7),
+                    color: theme.palette.mode === 'dark' 
+                      ? alpha(theme.palette.common.white, 0.7)
+                      : alpha(theme.palette.text.primary, 0.7),
                     '&.Mui-selected': {
-                      color: theme.palette.common.white,
+                      color: theme.palette.mode === 'dark' 
+                        ? theme.palette.common.white
+                        : theme.palette.text.primary,
                     },
                     '&:hover': {
-                      color: theme.palette.common.white,
+                      color: theme.palette.mode === 'dark' 
+                        ? theme.palette.common.white
+                        : theme.palette.text.primary,
                     },
                   },
                 }}
@@ -239,10 +257,19 @@ const Notes: React.FC = () => {
           </Box>
 
           <Button
+            variant="outlined"
+            startIcon={<DownloadIcon />}
+            onClick={handleExportAllNotes}
+            sx={{ ml: 2 }}
+            disabled={notes.length === 0}
+          >
+            Exporter tout
+          </Button>
+          <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={handleCreateNote}
-            sx={{ ml: 2 }}
+            sx={{ ml: 2, color: 'white' }}
           >
             Nouvelle note
           </Button>
@@ -420,17 +447,23 @@ const Notes: React.FC = () => {
                     mr: 2,
                     '& .MuiOutlinedInput-root': {
                       '& fieldset': {
-                        borderColor: alpha(theme.palette.common.white, 0.3),
+                        borderColor: theme.palette.mode === 'dark' 
+                          ? alpha(theme.palette.common.white, 0.3)
+                          : alpha(theme.palette.text.primary, 0.3),
                       },
                       '&:hover fieldset': {
-                        borderColor: alpha(theme.palette.common.white, 0.5),
+                        borderColor: theme.palette.mode === 'dark' 
+                          ? alpha(theme.palette.common.white, 0.5)
+                          : alpha(theme.palette.text.primary, 0.5),
                       },
                       '&.Mui-focused fieldset': {
                         borderColor: theme.palette.primary.main,
                       },
                     },
                     '& .MuiOutlinedInput-input': {
-                      color: theme.palette.common.white,
+                      color: theme.palette.mode === 'dark' 
+                        ? theme.palette.common.white
+                        : theme.palette.text.primary,
                       fontWeight: 500,
                     },
                   }}
@@ -479,14 +512,15 @@ const Notes: React.FC = () => {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                 Créez une nouvelle note ou sélectionnez-en une existante dans la barre latérale.
               </Typography>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={handleCreateNote}
-                size="large"
-              >
-                Créer ma première note
-              </Button>
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={handleCreateNote}
+                  size="large"
+                  sx={{ color: 'white' }}
+                >
+                  Créer ma première note
+                </Button>
             </Box>
           )}
         </Box>
@@ -502,7 +536,12 @@ const Notes: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)}>Annuler</Button>
-          <Button onClick={confirmDelete} color="error" variant="contained">
+          <Button 
+            onClick={confirmDelete} 
+            color="error" 
+            variant="contained"
+            sx={{ color: 'white' }}
+          >
             Supprimer
           </Button>
         </DialogActions>
