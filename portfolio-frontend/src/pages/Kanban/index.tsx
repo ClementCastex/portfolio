@@ -163,13 +163,15 @@ const Kanban: React.FC = () => {
               <EditIcon />
             </IconButton>
           </Box>
-          <Button
-            variant="outlined"
-            startIcon={<CalendarIcon />}
-            onClick={() => setView('calendar')}
-          >
-            Vue Calendrier
-          </Button>
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <Button
+              variant="outlined"
+              startIcon={<CalendarIcon />}
+              onClick={() => setView('calendar')}
+            >
+              Vue Calendrier
+            </Button>
+          </Box>
         </Paper>
         <KanbanBoard board={activeBoard} />
       </Box>
