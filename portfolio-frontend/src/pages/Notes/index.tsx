@@ -181,18 +181,24 @@ const Notes: React.FC = () => {
                 onChange={(_, newValue) => dispatch(setActiveNote(newValue))}
                 variant="scrollable"
                 scrollButtons="auto"
-                sx={{ 
+                sx={{
                   flexGrow: 1,
                   '& .MuiTabs-indicator': {
                     backgroundColor: theme.palette.primary.main,
                   },
                   '& .MuiTab-root': {
-                    color: alpha(theme.palette.common.white, 0.7),
+                    color: theme.palette.mode === 'dark' 
+                      ? alpha(theme.palette.common.white, 0.7)
+                      : alpha(theme.palette.text.primary, 0.7),
                     '&.Mui-selected': {
-                      color: theme.palette.common.white,
+                      color: theme.palette.mode === 'dark' 
+                        ? theme.palette.common.white
+                        : theme.palette.text.primary,
                     },
                     '&:hover': {
-                      color: theme.palette.common.white,
+                      color: theme.palette.mode === 'dark' 
+                        ? theme.palette.common.white
+                        : theme.palette.text.primary,
                     },
                   },
                 }}
@@ -423,17 +429,23 @@ const Notes: React.FC = () => {
                     mr: 2,
                     '& .MuiOutlinedInput-root': {
                       '& fieldset': {
-                        borderColor: alpha(theme.palette.common.white, 0.3),
+                        borderColor: theme.palette.mode === 'dark' 
+                          ? alpha(theme.palette.common.white, 0.3)
+                          : alpha(theme.palette.text.primary, 0.3),
                       },
                       '&:hover fieldset': {
-                        borderColor: alpha(theme.palette.common.white, 0.5),
+                        borderColor: theme.palette.mode === 'dark' 
+                          ? alpha(theme.palette.common.white, 0.5)
+                          : alpha(theme.palette.text.primary, 0.5),
                       },
                       '&.Mui-focused fieldset': {
                         borderColor: theme.palette.primary.main,
                       },
                     },
                     '& .MuiOutlinedInput-input': {
-                      color: theme.palette.common.white,
+                      color: theme.palette.mode === 'dark' 
+                        ? theme.palette.common.white
+                        : theme.palette.text.primary,
                       fontWeight: 500,
                     },
                   }}
