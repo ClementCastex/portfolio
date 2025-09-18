@@ -150,13 +150,15 @@ const Kanban: React.FC = () => {
             >
               ← Retour aux tableaux
             </Button>
-            <Typography variant="h5" sx={{ color: 'white' }}>
+            <Typography variant="h5" sx={{ 
+              color: theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary 
+            }}>
               {activeBoard.name}
             </Typography>
             <IconButton 
               size="small" 
               onClick={handleEditBoard}
-              sx={{ color: 'white' }}
+              sx={{ color: theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary }}
             >
               <EditIcon />
             </IconButton>
@@ -217,7 +219,10 @@ const Kanban: React.FC = () => {
     <Box sx={{ p: 3, minHeight: '100vh' }}>
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
-        <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold' }}>
+        <Typography variant="h4" sx={{ 
+          color: theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary, 
+          fontWeight: 'bold' 
+        }}>
           Mes Tableaux Kanban
         </Typography>
         <Stack direction="row" spacing={2}>
@@ -284,7 +289,10 @@ const Kanban: React.FC = () => {
             >
               <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                  <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
+                  <Typography variant="h6" sx={{ 
+                    color: theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary, 
+                    fontWeight: 'bold' 
+                  }}>
                     {board.name}
                   </Typography>
                   <Box>

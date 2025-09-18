@@ -73,7 +73,7 @@ const KanbanCard: React.FC<KanbanCardProps> = ({ card, columnId, onEdit }) => {
           sx={{ 
             fontWeight: 'bold', 
             mb: 1,
-            color: 'white',
+            color: theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary,
             lineHeight: 1.3,
           }}
         >

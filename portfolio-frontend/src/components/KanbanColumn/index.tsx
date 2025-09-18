@@ -119,7 +119,9 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({ column, onCreateCard, onEdi
         maxHeight: 'calc(100vh - 200px)',
         display: 'flex',
         flexDirection: 'column',
-        backgroundColor: alpha(theme.palette.background.paper, 0.9),
+        backgroundColor: theme.palette.mode === 'dark' 
+          ? alpha(theme.palette.background.paper, 0.9) 
+          : theme.palette.background.paper,
         border: isDragOver ? 2 : 1,
         borderColor: isDragOver ? theme.palette.primary.main : 'divider',
         transition: 'all 0.2s',
@@ -139,7 +141,10 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({ column, onCreateCard, onEdi
           justifyContent: 'space-between',
         }}
       >
-        <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
+        <Typography variant="h6" sx={{ 
+          color: theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary, 
+          fontWeight: 'bold' 
+        }}>
           {column.name}
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -183,10 +188,11 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({ column, onCreateCard, onEdi
           sx={{
             borderStyle: 'dashed',
             borderColor: alpha(theme.palette.primary.main, 0.5),
-            color: theme.palette.primary.main,
+            color: theme.palette.mode === 'dark' ? 'white' : theme.palette.primary.main,
             '&:hover': {
               borderColor: theme.palette.primary.main,
               backgroundColor: alpha(theme.palette.primary.main, 0.05),
+              color: theme.palette.mode === 'dark' ? 'white' : theme.palette.primary.main,
             },
           }}
         >

@@ -35,8 +35,10 @@ import { fetchCalendarEvents } from '../../store/slices/kanbanSlice';
 
 // Styled components pour un look moderne
 const ModernCalendarPaper = styled(Paper)(({ theme }) => ({
-  background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.95)} 0%, ${alpha(theme.palette.background.paper, 0.8)} 100%)`,
-  backdropFilter: 'blur(20px)',
+  background: theme.palette.mode === 'dark' 
+    ? `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.95)} 0%, ${alpha(theme.palette.background.paper, 0.8)} 100%)`
+    : theme.palette.background.paper,
+  backdropFilter: theme.palette.mode === 'dark' ? 'blur(20px)' : 'none',
   border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
   borderRadius: theme.spacing(2),
 }));
@@ -180,12 +182,14 @@ const CalendarView: React.FC = () => {
               <Typography 
                 variant="h4" 
                 sx={{ 
-                  color: 'white', 
+                  color: theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary, 
                   fontWeight: 'bold',
-                  background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
+                  ...(theme.palette.mode === 'dark' && {
+                    background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }),
                 }}
               >
                 {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
@@ -330,7 +334,7 @@ const CalendarView: React.FC = () => {
                               ? theme.palette.secondary.main 
                               : day.isSelected
                                 ? theme.palette.primary.main
-                                : 'white')
+                                : theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary)
                           : 'text.disabled',
                         fontSize: day.isToday || day.isSelected ? '1.1rem' : '1rem',
                       }}
@@ -415,7 +419,10 @@ const CalendarView: React.FC = () => {
         {selectedDay && (
           <Fade in timeout={500}>
             <ModernCalendarPaper elevation={4} sx={{ mt: 3, p: 3 }}>
-              <Typography variant="h6" sx={{ mb: 2, color: 'white' }}>
+              <Typography variant="h6" sx={{ 
+                mb: 2, 
+                color: theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary 
+              }}>
                 Événements du {selectedDay.toLocaleDateString('fr-FR', { 
                   weekday: 'long', 
                   year: 'numeric', 
@@ -455,7 +462,10 @@ const CalendarView: React.FC = () => {
                             </Avatar>
                             
                             <Box sx={{ flexGrow: 1 }}>
-                              <Typography variant="subtitle1" sx={{ color: 'white', fontWeight: 'bold' }}>
+                              <Typography variant="subtitle1" sx={{ 
+                                color: theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary, 
+                                fontWeight: 'bold' 
+                              }}>
                                 {event.title}
                               </Typography>
                               <Typography variant="body2" color="text.secondary">
