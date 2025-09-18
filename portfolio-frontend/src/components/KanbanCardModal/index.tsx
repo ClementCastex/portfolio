@@ -52,7 +52,7 @@ import {
 } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import { KanbanCard, KanbanBoard as KanbanBoardType } from '../../types';
-import { createCard, updateCard, createTag, uploadCardFile, deleteCardFile, createCardLink, deleteCardLink } from '../../store/slices/kanbanSlice';
+import { createCard, updateCard, createTag, uploadCardFile, deleteCardFile, createCardLink, deleteCardLink, createCardComment, deleteCardComment } from '../../store/slices/kanbanSlice';
 import FilePreview from '../FilePreview';
 
 interface KanbanCardModalProps {
@@ -87,6 +87,7 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
   const [newTagColor, setNewTagColor] = useState('#3f51b5');
   const [newLinkUrl, setNewLinkUrl] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
+  const [newComment, setNewComment] = useState('');
 
   useEffect(() => {
     if (card) {
@@ -215,6 +216,17 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
 
   const handleDeleteLink = (linkId: number) => {
     dispatch(deleteCardLink(linkId) as any);
+  };
+
+  const handleAddComment = () => {
+    if (newComment.trim() && card) {
+      dispatch(createCardComment({ cardId: card.id, content: newComment.trim() }) as any);
+      setNewComment('');
+    }
+  };
+
+  const handleDeleteComment = (commentId: number) => {
+    dispatch(deleteCardComment(commentId) as any);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -440,6 +452,33 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
             </AccordionDetails>
           </Accordion>
 
+          {/* Labels/Étiquettes rapides */}
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              Étiquettes rapides
+            </Typography>
+            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+              {['🚨 Urgent', '⚡ Rapide', '🎯 Important', '📋 Documentation', '🐛 Bug', '✨ Amélioration'].map((label) => (
+                <Chip
+                  key={label}
+                  label={label}
+                  size="small"
+                  onClick={() => {
+                    // Ajouter le label à la description
+                    setDescription(prev => prev ? `${prev}\n\n${label}` : label);
+                  }}
+                  sx={{
+                    cursor: 'pointer',
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.main,
+                      color: 'white',
+                    },
+                  }}
+                />
+              ))}
+            </Stack>
+          </Box>
+
           <Divider />
 
           {/* Files Section */}
@@ -651,7 +690,7 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
             </AccordionDetails>
           </Accordion>
 
-          {/* Comments section (placeholder) */}
+          {/* Comments Section */}
           <Accordion>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -662,9 +701,71 @@ const KanbanCardModal: React.FC<KanbanCardModalProps> = ({
               </Box>
             </AccordionSummary>
             <AccordionDetails>
-              <Typography variant="body2" color="text.secondary">
-                Fonctionnalité à venir : système de commentaires avec notifications
-              </Typography>
+              <Stack spacing={2}>
+                {/* Add comment */}
+                {card && (
+                  <Stack direction="row" spacing={1}>
+                    <TextField
+                      size="small"
+                      placeholder="Ajouter un commentaire..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleAddComment()}
+                      sx={{ flexGrow: 1 }}
+                      multiline
+                      maxRows={3}
+                    />
+                    <Button 
+                      variant="outlined" 
+                      size="small" 
+                      onClick={handleAddComment}
+                      disabled={!newComment.trim()}
+                    >
+                      <CommentIcon />
+                    </Button>
+                  </Stack>
+                )}
+
+                {/* Comments list */}
+                {card?.comments && Array.isArray(card.comments) && card.comments.length > 0 && (
+                  <Stack spacing={2}>
+                    {card.comments.map((comment) => (
+                      <Box
+                        key={comment.id}
+                        sx={{
+                          p: 2,
+                          border: 1,
+                          borderColor: 'divider',
+                          borderRadius: 2,
+                          backgroundColor: theme.palette.action.hover,
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}>
+                          <Typography variant="caption" color="text.secondary">
+                            {comment.author?.email || 'Utilisateur'} • {new Date(comment.createdAt).toLocaleDateString()}
+                          </Typography>
+                          <IconButton 
+                            size="small" 
+                            onClick={() => handleDeleteComment(comment.id)}
+                            color="error"
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                        <Typography variant="body2">
+                          {comment.content}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Stack>
+                )}
+
+                {(!card?.comments || card.comments.length === 0) && card && (
+                  <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                    Aucun commentaire. Soyez le premier à commenter !
+                  </Typography>
+                )}
+              </Stack>
             </AccordionDetails>
           </Accordion>
         </Stack>

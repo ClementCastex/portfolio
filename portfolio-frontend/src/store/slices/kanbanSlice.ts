@@ -340,6 +340,47 @@ export const deleteCardLink = createAsyncThunk(
   }
 );
 
+export const createCardComment = createAsyncThunk(
+  'kanban/createCardComment',
+  async ({ cardId, content }: { cardId: number; content: string }, { getState, rejectWithValue }) => {
+    try {
+      const { auth } = getState() as any;
+      if (!auth.token) throw new Error('No token');
+
+      const response = await fetch(`${API_BASE_URL}/api/cards/${cardId}/comments`, {
+        method: 'POST',
+        headers: getAuthHeaders(auth.token),
+        body: JSON.stringify({ content }),
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return await response.json();
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const deleteCardComment = createAsyncThunk(
+  'kanban/deleteCardComment',
+  async (commentId: number, { getState, rejectWithValue }) => {
+    try {
+      const { auth } = getState() as any;
+      if (!auth.token) throw new Error('No token');
+
+      const response = await fetch(`${API_BASE_URL}/api/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(auth.token),
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return commentId;
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 export const fetchCalendarEvents = createAsyncThunk(
   'kanban/fetchCalendarEvents',
   async ({ from, to }: { from: string; to: string }, { getState, rejectWithValue }) => {
@@ -559,6 +600,28 @@ const kanbanSlice = createSlice({
           for (const column of state.activeBoard.columns) {
             for (const card of column.cards) {
               card.links = card.links.filter(link => link.id !== action.payload);
+            }
+          }
+        }
+      })
+      // Create comment
+      .addCase(createCardComment.fulfilled, (state, action) => {
+        if (state.activeBoard) {
+          for (const column of state.activeBoard.columns) {
+            const card = column.cards.find(c => c.id === action.meta.arg.cardId);
+            if (card) {
+              card.comments.push(action.payload);
+              break;
+            }
+          }
+        }
+      })
+      // Delete comment
+      .addCase(deleteCardComment.fulfilled, (state, action) => {
+        if (state.activeBoard) {
+          for (const column of state.activeBoard.columns) {
+            for (const card of column.cards) {
+              card.comments = card.comments.filter(comment => comment.id !== action.payload);
             }
           }
         }
