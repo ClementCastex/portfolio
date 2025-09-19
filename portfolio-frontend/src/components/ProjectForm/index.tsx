@@ -265,8 +265,16 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleClose = () => {
+    // Réinitialiser tous les états lors de la fermeture
+    setLoading(false);
+    setUploading(false);
+    setError(null);
+    setSuccess(null);
+    onClose();
+  };
+
+  const handleSubmit = async () => {
     setError(null);
     setLoading(true);
 
@@ -320,7 +328,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
         // Nouveau projet sans images - fermeture automatique
         setTimeout(() => {
           onSuccess();
-          onClose();
+          handleClose();
         }, 1500);
       } else {
         // Projet existant ou avec images - fermeture manuelle
@@ -660,7 +668,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   return (
     <Dialog 
       open={open} 
-      onClose={loading ? undefined : onClose}
+      onClose={loading ? undefined : handleClose}
       maxWidth="md"
       fullWidth
       PaperProps={{
@@ -670,7 +678,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
         }
       }}
     >
-      <form onSubmit={handleSubmit}>
+      <form>
         <DialogTitle sx={{ 
           borderBottom: '1px solid',
           borderColor: 'divider',
@@ -680,7 +688,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
         }}>
           {project ? 'Modifier le projet' : 'Créer un nouveau projet'}
           <IconButton 
-            onClick={onClose} 
+            onClick={handleClose} 
             size="small"
             disabled={loading}
           >
@@ -714,7 +722,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
                     size="small" 
                     onClick={() => {
                       onSuccess();
-                      onClose();
+                      handleClose();
                     }}
                   >
                     Fermer
@@ -738,7 +746,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
         }}>
           <Box>
             <Button 
-              onClick={onClose}
+              onClick={handleClose}
               disabled={loading}
               startIcon={<CancelIcon />}
               sx={{ color: theme => theme.palette.text.primary }}
@@ -759,9 +767,10 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
             
             {activeStep === steps.length - 1 ? (
               <Button 
-                type="submit"
+                type="button"
                 variant="contained"
                 disabled={loading || uploading}
+                onClick={handleSubmit}
                 startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
                 sx={{
                   bgcolor: '#5B348B',
