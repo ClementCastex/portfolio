@@ -153,9 +153,21 @@ REACT_APP_ENVIRONMENT=development
 - ✅ **Drag & Drop d'images** directement dans l'éditeur
 - ✅ **Gestion des tags** avec couleurs personnalisables
 - ✅ **Recherche full-text** dans titre et contenu
-- ✅ **Barre latérale** avec filtres et navigation
-- ✅ **Actions avancées** : duplication, suppression, export (structure prête)
+- ✅ **Export professionnel** : PDF A4 et PNG haute qualité
+- ✅ **Export groupé** : Toutes les notes en un PDF
 - ✅ **UX optimisée** : transitions fluides, gestion du curseur, contraste parfait
+
+### 🎯 **Système Kanban Professionnel** *(Admin uniquement)*
+- ✅ **Tableaux illimités** avec colonnes personnalisables
+- ✅ **Drag & Drop** fluide entre colonnes avec persistance
+- ✅ **Vue calendrier moderne** avec statistiques et glass-morphism
+- ✅ **Cartes enrichies** : priorités, checklists, suivi temps, assignation
+- ✅ **Gestion de fichiers** : Upload drag & drop, preview, types multiples
+- ✅ **Gestion de liens** : Métadonnées automatiques, favicons
+- ✅ **Système de commentaires** : Collaboration en temps réel
+- ✅ **Tags colorés** : Organisation et filtrage avancé
+- ✅ **Étiquettes rapides** : 🚨 Urgent, ⚡ Rapide, 🎯 Important, etc.
+- ✅ **Historique d'activité** : Audit trail complet des modifications
 
 ### 📝 **Utilisation du Bloc-notes**
 
@@ -175,6 +187,33 @@ REACT_APP_ENVIRONMENT=development
 - Tables : `note`, `note_tag`, `note_asset`, `note_tag_links`
 - Sécurité : Accès restreint aux utilisateurs `ROLE_ADMIN`
 - Stockage : Images dans `/public/uploads/notes/`
+
+### 🎯 **Utilisation du Kanban**
+
+**Accès :** Connectez-vous en tant qu'administrateur → Menu "Kanban"
+
+**Fonctionnalités clés :**
+- **Créer un tableau** : Bouton "Nouveau tableau" avec colonnes par défaut
+- **Gestion des colonnes** : Menu 3 points pour renommer/supprimer
+- **Cartes avancées** : Priorités, checklists, temps, fichiers, liens
+- **Drag & Drop** : Déplacer les cartes entre colonnes
+- **Vue calendrier** : Visualiser toutes les échéances
+- **Tags colorés** : Organisation et filtrage
+- **Commentaires** : Collaboration sur les tâches
+- **Export** : Fonctionnalités d'export à venir
+
+**Fonctionnalités avancées :**
+- **Priorités** : 🔴 Haute, 🟡 Moyenne, 🟢 Basse
+- **Checklists** : Sous-tâches avec progression visuelle
+- **Suivi temps** : Estimation vs temps passé
+- **Fichiers** : Upload drag & drop avec preview
+- **Liens** : Métadonnées automatiques (titre, favicon)
+- **Assignation** : Avatars des utilisateurs (structure prête)
+
+**Base de données :**
+- Tables : `kanban`, `kanban_column`, `kanban_card`, `kanban_card_tag`, `kanban_card_file`, `kanban_card_link`, `kanban_card_comment`
+- Sécurité : Accès restreint aux utilisateurs `ROLE_ADMIN`
+- Stockage : Fichiers dans `/public/uploads/kanban/`
 
 ## 🌐 Mise en production
 
@@ -393,6 +432,10 @@ openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout
 # Notes system (Admin uniquement)
 # Accès : http://localhost:3000/notes (après connexion admin)
 # API : GET/POST /api/notes, GET/POST /api/note-tags
+
+# Kanban system (Admin uniquement)
+# Accès : http://localhost:3000/kanban (après connexion admin)
+# API : GET/POST /api/kanbans, /api/columns, /api/cards, /api/calendar
 
 # Git
 git add . && git commit -m "message" && git push origin DEV
