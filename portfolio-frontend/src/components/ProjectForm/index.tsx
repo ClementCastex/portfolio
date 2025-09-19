@@ -322,6 +322,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
       }
 
       setSuccess('Projet sauvegardé avec succès!');
+      setLoading(false); // ✅ Arrêter le loading après succès
       
       // Ne fermer automatiquement que si c'est un nouveau projet sans images à uploader
       if (!project?.id && selectedFiles.length === 0) {
