@@ -272,8 +272,9 @@ const Projects: React.FC = () => {
       </Paper>
       
       {/* Filtres */}
-      <Fade in={filtersVisible}>
-        <Box>
+      {filtersVisible && (
+        <Fade in={filtersVisible}>
+          <Box>
           <ProjectFilters
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
@@ -326,8 +327,9 @@ const Projects: React.FC = () => {
               </Stack>
             </Box>
           )}
-        </Box>
-      </Fade>
+          </Box>
+        </Fade>
+      )}
       
       {/* Message quand aucun projet ne correspond */}
       {filteredProjects.length === 0 ? (
