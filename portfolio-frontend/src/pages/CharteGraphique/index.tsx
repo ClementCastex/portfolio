@@ -421,7 +421,7 @@ const StoryTellingSection = () => (
               }}>
                 <Typography variant="h6" sx={{ color: theme => theme.palette.text.primary }}>Premier essai</Typography>
                 <img 
-                  src="/images/Logo idée 1.png" 
+                  src="/images/Logo-idee-1.png" 
                   alt="Logo Icon"
                   style={{
                     width: '200px',
@@ -441,7 +441,7 @@ const StoryTellingSection = () => (
               }}>
                 <Typography variant="h6" sx={{ color: theme => theme.palette.text.primary }}>Deuxième essai</Typography>
                 <img 
-                  src="/images/Logo idée 1 V2.png" 
+                  src="/images/Logo-idee-1-V2.png" 
                   alt="Logo Icon"
                   style={{
                     width: '350px',
@@ -461,7 +461,7 @@ const StoryTellingSection = () => (
               }}>
                 <Typography variant="h6" sx={{ color: theme => theme.palette.text.primary }}>Résultat Final</Typography>
                 <img 
-                  src="/images/Logo Icon Off V2.svg" 
+                  src="/images/Logo-Icon-Off-V2.svg" 
                   alt="Logo Icon"
                   style={{
                     width: '350px',
@@ -539,7 +539,7 @@ const LogoSection = () => (
                 mb: 4
               }}>
                 <img 
-                  src="/images/Logo Icon Off V2.svg" 
+                  src="/images/Logo-Icon-Off-V2.svg" 
                   alt="Logo Icon"
                   style={{
                     width: '300px',
@@ -556,7 +556,7 @@ const LogoSection = () => (
                 justifyContent: 'center'
               }}>
                 <img 
-                  src="/images/Logo Bannière Off V2.svg" 
+                  src="/images/Logo-Banniere-Off-V2.svg" 
                   alt="Logo Bannière"
                   style={{
                     width: '600px',
