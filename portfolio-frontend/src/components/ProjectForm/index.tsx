@@ -290,14 +290,16 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
 
       const data = await response.json();
 
-      if (selectedFiles.length > 0 && !project?.id) {
+      // Upload des nouvelles images (pour nouveaux projets ET projets existants)
+      if (selectedFiles.length > 0) {
         setUploading(true);
         const imageFormData = new FormData();
         selectedFiles.forEach((file) => {
           imageFormData.append('images[]', file);
         });
 
-        const uploadResponse = await fetch(`${API_ENDPOINTS.PROJECTS}/${data.id}/images`, {
+        const projectId = project?.id || data.id;
+        const uploadResponse = await fetch(`${API_ENDPOINTS.PROJECTS}/${projectId}/images`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -312,10 +314,20 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
       }
 
       setSuccess('Projet sauvegardé avec succès!');
-      setTimeout(() => {
-        onSuccess();
-        onClose();
-      }, 1500);
+      
+      // Ne fermer automatiquement que si c'est un nouveau projet sans images à uploader
+      if (!project?.id && selectedFiles.length === 0) {
+        // Nouveau projet sans images - fermeture automatique
+        setTimeout(() => {
+          onSuccess();
+          onClose();
+        }, 1500);
+      } else {
+        // Projet existant ou avec images - fermeture manuelle
+        setTimeout(() => {
+          setSuccess('Projet sauvegardé ! Vous pouvez continuer à modifier ou fermer.');
+        }, 1000);
+      }
     } catch (error) {
       console.error('Error saving project:', error);
       setError('Erreur lors de la sauvegarde du projet');
@@ -692,7 +704,24 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           )}
 
           {success && (
-            <Alert severity="success" sx={{ mb: 2 }}>
+            <Alert 
+              severity="success" 
+              sx={{ mb: 2 }}
+              action={
+                success.includes('continuer à modifier') ? (
+                  <Button 
+                    color="inherit" 
+                    size="small" 
+                    onClick={() => {
+                      onSuccess();
+                      onClose();
+                    }}
+                  >
+                    Fermer
+                  </Button>
+                ) : null
+              }
+            >
               {success}
             </Alert>
           )}
