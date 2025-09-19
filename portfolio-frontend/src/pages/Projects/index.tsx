@@ -48,6 +48,7 @@ import { fetchProjects, deleteProject } from '../../store/slices/projectSlice';
 import ProjectCard from '../../components/ProjectCard';
 import ProjectFilters from '../../components/ProjectFilters';
 import ProjectForm from '../../components/ProjectForm';
+import logger from '../../utils/logger';
 import { useProjectsWithLikes } from '../../hooks/useProjectsWithLikes';
 import { Project } from '../../types';
 import { Theme } from '@mui/material/styles';
@@ -107,7 +108,7 @@ const Projects: React.FC = () => {
         setDeleteDialogOpen(false);
         setProjectToDelete(null);
       } catch (error) {
-        console.error('Error deleting project:', error);
+        logger.error('Error deleting project:', error);
       }
     }
   };

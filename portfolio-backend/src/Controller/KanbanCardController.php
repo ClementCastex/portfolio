@@ -24,6 +24,21 @@ class KanbanCardController extends AbstractController
 {
     private string $uploadDirectory;
 
+    // Types MIME autorisés pour la sécurité
+    private const ALLOWED_MIME_TYPES = [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+        'application/pdf', 'text/plain', 'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+
+    // Extensions autorisées
+    private const ALLOWED_EXTENSIONS = [
+        'jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'txt', 'doc', 'docx'
+    ];
+
+    // Taille maximale (10MB)
+    private const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
         private KanbanCardRepository $cardRepository,
@@ -36,6 +51,44 @@ class KanbanCardController extends AbstractController
         if (!is_dir($this->uploadDirectory)) {
             mkdir($this->uploadDirectory, 0755, true);
         }
+    }
+
+    /**
+     * Valide un fichier uploadé selon les critères de sécurité
+     */
+    private function validateUploadedFile(UploadedFile $file): array
+    {
+        $errors = [];
+
+        // Vérifier la taille
+        if ($file->getSize() > self::MAX_FILE_SIZE) {
+            $errors[] = 'Fichier trop volumineux (maximum 10MB)';
+        }
+
+        // Vérifier le type MIME déclaré
+        $declaredMime = $file->getMimeType();
+        if (!in_array($declaredMime, self::ALLOWED_MIME_TYPES)) {
+            $errors[] = 'Type de fichier non autorisé: ' . $declaredMime;
+        }
+
+        // Vérifier le type MIME réel (plus sécurisé)
+        $realMime = mime_content_type($file->getPathname());
+        if (!in_array($realMime, self::ALLOWED_MIME_TYPES)) {
+            $errors[] = 'Type de fichier réel non autorisé: ' . $realMime;
+        }
+
+        // Vérifier l'extension
+        $extension = $file->guessExtension();
+        if (!in_array($extension, self::ALLOWED_EXTENSIONS)) {
+            $errors[] = 'Extension de fichier non autorisée: ' . $extension;
+        }
+
+        // Vérifier que les types MIME déclaré et réel correspondent
+        if ($declaredMime !== $realMime) {
+            $errors[] = 'Incohérence entre type déclaré et type réel du fichier';
+        }
+
+        return $errors;
     }
 
     #[Route('/api/columns/{columnId}/cards', name: 'create_card', methods: ['POST'])]
@@ -201,9 +254,13 @@ class KanbanCardController extends AbstractController
             return new JsonResponse(['message' => 'No file uploaded'], Response::HTTP_BAD_REQUEST);
         }
 
-        // Vérification de la taille (max 10MB)
-        if ($uploadedFile->getSize() > 10 * 1024 * 1024) {
-            return new JsonResponse(['message' => 'File too large (max 10MB)'], Response::HTTP_BAD_REQUEST);
+        // Validation sécurisée du fichier
+        $validationErrors = $this->validateUploadedFile($uploadedFile);
+        if (!empty($validationErrors)) {
+            return new JsonResponse([
+                'message' => 'Fichier non valide',
+                'errors' => $validationErrors
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         $originalFilename = pathinfo($uploadedFile->getClientOriginalName(), PATHINFO_FILENAME);

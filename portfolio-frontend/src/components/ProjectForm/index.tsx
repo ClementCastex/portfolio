@@ -33,6 +33,7 @@ import {
   Backdrop,
 } from '@mui/material';
 import { Theme } from '@mui/material/styles';
+import logger from '../../utils/logger';
 import { 
   Delete as DeleteIcon, 
   CloudUpload as CloudUploadIcon, 
@@ -176,7 +177,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
         setSuccess('Images téléchargées avec succès');
         setTimeout(() => setSuccess(null), 3000);
       } catch (error) {
-        console.error('Error uploading images:', error);
+        logger.error('Error uploading images:', error);
         setError('Erreur lors du téléchargement des images');
       } finally {
         setUploading(false);
@@ -212,7 +213,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
         setSuccess('Image supprimée avec succès');
         setTimeout(() => setSuccess(null), 3000);
       } catch (error) {
-        console.error('Error deleting image:', error);
+        logger.error('Error deleting image:', error);
         setError('Erreur lors de la suppression de l\'image');
       } finally {
         setLoading(false);
@@ -338,7 +339,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
         }, 1000);
       }
     } catch (error) {
-      console.error('Error saving project:', error);
+      logger.error('Error saving project:', error);
       setError('Erreur lors de la sauvegarde du projet');
       setLoading(false);
     }
