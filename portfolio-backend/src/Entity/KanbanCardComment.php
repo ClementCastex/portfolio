@@ -29,7 +29,7 @@ class KanbanCardComment
     #[Groups(['kanban:read', 'card:read', 'comment:read'])]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    #[ORM\ManyToOne(targetEntity: KanbanCard::class)]
+    #[ORM\ManyToOne(targetEntity: KanbanCard::class, inversedBy: 'comments')]
     #[ORM\JoinColumn(nullable: false)]
     private ?KanbanCard $card = null;
 
