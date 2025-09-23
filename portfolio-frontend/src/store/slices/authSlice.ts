@@ -57,6 +57,7 @@ export const loadUser = createAsyncThunk(
   }
 );
 
+
 export const login = createAsyncThunk(
   'auth/login',
   async ({ email, password }: { email: string; password: string }, { dispatch, rejectWithValue }) => {
@@ -68,11 +69,13 @@ export const login = createAsyncThunk(
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'omit',
         body: JSON.stringify({ 
           email,
           password
         }),
       });
+
 
       console.log('Status de la réponse:', response.status);
       const data = await response.json().catch(e => {
