@@ -38,8 +38,8 @@ const TitleSection: React.FC<{ title: string }> = ({ title }) => (
       minHeight: '100vh',
       display: 'flex',
       alignItems: 'center',
-      bgcolor: '#1E1E1E',
-      color: 'white',
+      bgcolor: theme => theme.palette.background.default,
+      color: theme => theme.palette.text.primary,
     }}
   >
     <Box
@@ -68,8 +68,8 @@ const TitleSection: React.FC<{ title: string }> = ({ title }) => (
 const ColorSection = () => (
   <Box sx={{ 
     p: 8, 
-    bgcolor: '#1E1E1E', 
-    color: 'white',
+    bgcolor: theme => theme.palette.background.default,
+    color: theme => theme.palette.text.primary,
     position: 'relative',
     minHeight: '100vh',
     display: 'flex',
@@ -215,8 +215,8 @@ const ColorSection = () => (
 const TypographySection = () => (
   <Box sx={{ 
     p: 8, 
-    bgcolor: '#1E1E1E', 
-    color: 'white',
+    bgcolor: theme => theme.palette.background.default,
+    color: theme => theme.palette.text.primary,
     position: 'relative',
     minHeight: '100vh',
     display: 'flex',
@@ -302,7 +302,7 @@ const TypographySection = () => (
                   fontFamily: 'Exo 2',
                   fontSize: '1rem',
                   fontStyle: 'italic',
-                  color: 'rgba(255, 255, 255, 0.8)'
+                  color: theme => theme.palette.text.primary
                 }}>
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed et vehicula est. In eget erat quis ex vestibulum pretium in eu augue. Proin fringilla ullamcorper ligula, vitae vehicula lacus vulputate eget.
                 </Typography>
@@ -344,7 +344,7 @@ const TypographySection = () => (
                 <Typography sx={{ 
                   fontFamily: 'Quicksand',
                   fontSize: '1rem',
-                  color: 'rgba(255, 255, 255, 0.8)'
+                  color: theme => theme.palette.text.primary
                 }}>
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed et vehicula est. In eget erat quis ex vestibulum pretium in eu augue. Proin fringilla ullamcorper ligula, vitae vehicula lacus vulputate eget.
                 </Typography>
@@ -361,8 +361,8 @@ const TypographySection = () => (
 const StoryTellingSection = () => (
   <Box sx={{ 
     p: 8, 
-    bgcolor: '#1E1E1E', 
-    color: 'white',
+    bgcolor: theme => theme.palette.background.default,
+    color: theme => theme.palette.text.primary,
     position: 'relative',
     minHeight: '100vh',
     display: 'flex',
@@ -419,9 +419,9 @@ const StoryTellingSection = () => (
                 alignItems: 'center',
                 gap: 2
               }}>
-                <Typography variant="h6" sx={{ color: 'white' }}>Premier essai</Typography>
+                <Typography variant="h6" sx={{ color: theme => theme.palette.text.primary }}>Premier essai</Typography>
                 <img 
-                  src="/images/Logo idée 1.png" 
+                  src="/images/Logo-idee-1.png" 
                   alt="Logo Icon"
                   style={{
                     width: '200px',
@@ -439,9 +439,9 @@ const StoryTellingSection = () => (
                 alignItems: 'center',
                 gap: 2
               }}>
-                <Typography variant="h6" sx={{ color: 'white' }}>Deuxième essai</Typography>
+                <Typography variant="h6" sx={{ color: theme => theme.palette.text.primary }}>Deuxième essai</Typography>
                 <img 
-                  src="/images/Logo idée 1 V2.png" 
+                  src="/images/Logo-idee-1-V2.png" 
                   alt="Logo Icon"
                   style={{
                     width: '350px',
@@ -459,9 +459,9 @@ const StoryTellingSection = () => (
                 alignItems: 'center',
                 gap: 2
               }}>
-                <Typography variant="h6" sx={{ color: 'white' }}>Résultat Final</Typography>
+                <Typography variant="h6" sx={{ color: theme => theme.palette.text.primary }}>Résultat Final</Typography>
                 <img 
-                  src="/images/Logo Icon Off V2.svg" 
+                  src="/images/Logo-Icon-Off-V2.svg" 
                   alt="Logo Icon"
                   style={{
                     width: '350px',
@@ -481,8 +481,8 @@ const StoryTellingSection = () => (
 const LogoSection = () => (
   <Box sx={{ 
     p: 8, 
-    bgcolor: '#1E1E1E', 
-    color: 'white',
+    bgcolor: theme => theme.palette.background.default,
+    color: theme => theme.palette.text.primary,
     position: 'relative',
     minHeight: '100vh',
     display: 'flex',
@@ -539,7 +539,7 @@ const LogoSection = () => (
                 mb: 4
               }}>
                 <img 
-                  src="/images/Logo Icon Off V2.svg" 
+                  src="/images/Logo-Icon-Off-V2.svg" 
                   alt="Logo Icon"
                   style={{
                     width: '300px',
@@ -556,7 +556,7 @@ const LogoSection = () => (
                 justifyContent: 'center'
               }}>
                 <img 
-                  src="/images/Logo Bannière Off V2.svg" 
+                  src="/images/Logo-Banniere-Off-V2.svg" 
                   alt="Logo Bannière"
                   style={{
                     width: '600px',
@@ -572,84 +572,51 @@ const LogoSection = () => (
   </Box>
 );
 
-// Composant pour la pluie de pixels
-const PixelRain = () => {
-  const [pixels, setPixels] = React.useState<Array<{ id: number; x: number; y: number; size: number; speed: number; opacity: number }>>([]);
-  const requestRef = React.useRef<number | undefined>(undefined);
-  const lastTimeRef = React.useRef<number | undefined>(undefined);
-
-  React.useEffect(() => {
-    const maxPixels = 50;
-    let pixelId = 0;
-
-    const createPixel = () => {
-      const x = Math.random() * window.innerWidth * 0.4 + window.innerWidth * 0.6;
-      const y = -10;
-      const size = Math.random() * 8 + 4;
-      const speed = Math.random() * 2 + 1;
-      const opacity = Math.random() * 0.6 + 0.3;
-      return { id: pixelId++, x, y, size, speed, opacity };
-    };
-
-    const initialPixels = Array.from({ length: maxPixels }, createPixel);
-    setPixels(initialPixels);
-
-    const animate = (timestamp: DOMHighResTimeStamp) => {
-      if (lastTimeRef.current !== undefined) {
-        setPixels(prevPixels => 
-          prevPixels.map(pixel => {
-            if (pixel.y > window.innerHeight) {
-              return createPixel();
-            }
-            return {
-              ...pixel,
-              y: pixel.y + pixel.speed,
-            };
-          })
-        );
-      }
-      lastTimeRef.current = timestamp;
-      requestRef.current = window.requestAnimationFrame(animate);
-    };
-
-    requestRef.current = window.requestAnimationFrame(animate);
-    return () => {
-      if (requestRef.current) {
-        window.cancelAnimationFrame(requestRef.current);
-      }
-    };
-  }, []);
-
-  return (
-    <Box
-      sx={{
-        position: 'fixed',
-        top: 0,
-        right: 0,
-        bottom: 0,
-        width: '40%',
-        pointerEvents: 'none',
-        zIndex: 1,
-      }}
-    >
-      {pixels.map(pixel => (
-        <Box
-          key={pixel.id}
-          sx={{
-            position: 'absolute',
-            width: pixel.size,
-            height: pixel.size,
-            backgroundColor: '#5B348B',
-            opacity: pixel.opacity,
-            left: pixel.x - window.innerWidth * 0.6,
-            top: pixel.y,
-            borderRadius: '1px',
-          }}
-        />
-      ))}
-    </Box>
-  );
-};
+// Composant pour l'effet de particules optimisé
+const ParticleEffect = () => (
+  <Box
+    sx={{
+      position: 'fixed',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      width: '40%',
+      pointerEvents: 'none',
+      zIndex: 1,
+      overflow: 'hidden',
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: '-50%',
+        left: '-50%',
+        right: '-50%',
+        bottom: '-50%',
+        width: '200%',
+        height: '200%',
+        background: 'transparent',
+        backgroundImage: theme => `
+          radial-gradient(circle at 15% 25%, ${theme.palette.mode === 'dark' ? 'rgba(91, 52, 139, 0.4)' : 'rgba(91, 52, 139, 0.25)'} 1px, transparent 3px),
+          radial-gradient(circle at 35% 65%, ${theme.palette.mode === 'dark' ? 'rgba(91, 52, 139, 0.35)' : 'rgba(91, 52, 139, 0.2)'} 2px, transparent 4px),
+          radial-gradient(circle at 55% 45%, ${theme.palette.mode === 'dark' ? 'rgba(91, 52, 139, 0.3)' : 'rgba(91, 52, 139, 0.18)'} 3px, transparent 6px),
+          radial-gradient(circle at 75% 85%, ${theme.palette.mode === 'dark' ? 'rgba(91, 52, 139, 0.25)' : 'rgba(91, 52, 139, 0.15)'} 1px, transparent 3px),
+          radial-gradient(circle at 85% 15%, ${theme.palette.mode === 'dark' ? 'rgba(91, 52, 139, 0.35)' : 'rgba(91, 52, 139, 0.2)'} 2px, transparent 4px)
+        `,
+        backgroundSize: '200px 200px',
+        animation: 'particleAnimation 30s linear infinite',
+        maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 60%, rgba(0,0,0,0))',
+        WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 60%, rgba(0,0,0,0))',
+      },
+      '@keyframes particleAnimation': {
+        '0%': {
+          transform: 'translate(0, 0) rotate(0deg)',
+        },
+        '100%': {
+          transform: 'translate(-30%, 30%) rotate(5deg)',
+        },
+      },
+    }}
+  />
+);
 
 const CharteGraphique: React.FC = () => {
   const handleDownloadPDF = () => {
@@ -691,7 +658,7 @@ const CharteGraphique: React.FC = () => {
         </Tooltip>
       </Box>
 
-      <PixelRain />
+      <ParticleEffect />
     </Box>
   );
 };

@@ -62,6 +62,10 @@ class Project
     #[Groups(['project:read'])]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    #[ORM\Column(options: ["default" => 0])]
+    #[Groups(['project:read'])]
+    private int $likeTotal = 0;
+
     /**
      * @var Collection<int, Bookmark>
      */
@@ -73,6 +77,7 @@ class Project
         $this->bookmarks = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
+        $this->likeTotal = 0;
     }
 
     public function getId(): ?int
@@ -193,6 +198,23 @@ class Project
         return $this;
     }
 
+    public function getLikeTotal(): int
+    {
+        return $this->likeTotal;
+    }
+
+    public function incrementLikeTotal(): static
+    {
+        $this->likeTotal++;
+        return $this;
+    }
+
+    public function decrementLikeTotal(): static
+    {
+        $this->likeTotal = max(0, $this->likeTotal - 1);
+        return $this;
+    }
+
     /**
      * @return Collection<int, Bookmark>
      */
@@ -218,5 +240,11 @@ class Project
             }
         }
         return $this;
+    }
+
+    #[Groups(['project:read'])]
+    public function getDescription(): ?string
+    {
+        return $this->longDescription;
     }
 }

@@ -18,31 +18,65 @@ import {
   IconButton,
   Typography,
   Alert,
+  Grid,
+  Paper,
+  Autocomplete,
+  Divider,
+  Stepper,
+  Step,
+  StepLabel,
+  CircularProgress,
+  Fade,
+  Zoom,
+  Tooltip,
+  LinearProgress,
+  Backdrop,
 } from '@mui/material';
-import { Delete as DeleteIcon, CloudUpload as CloudUploadIcon } from '@mui/icons-material';
+import { Theme } from '@mui/material/styles';
+import logger from '../../utils/logger';
+import { 
+  Delete as DeleteIcon, 
+  CloudUpload as CloudUploadIcon, 
+  Close as CloseIcon,
+  ArrowBack as ArrowBackIcon,
+  ArrowForward as ArrowForwardIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon,
+  GitHub as GitHubIcon,
+  Language as LanguageIcon,
+  Info as InfoIcon,
+} from '@mui/icons-material';
 import { API_ENDPOINTS, API_BASE_URL } from '../../config/api';
+import { Project } from '../../types';
 
 const textFieldStyle = {
   '& .MuiOutlinedInput-root': {
     '& fieldset': {
-      borderColor: 'rgba(255, 255, 255, 0.23)',
+      borderColor: '#5B348B',
     },
     '&:hover fieldset': {
-      borderColor: 'rgba(255, 255, 255, 0.4)',
+      borderColor: '#5B348B',
     },
     '&.Mui-focused fieldset': {
-      borderColor: 'primary.main',
+      borderColor: '#5B348B',
     },
   },
   '& .MuiInputLabel-root': {
-    color: '#CCAA1D',
+    color: (theme: Theme) => theme.palette.text.primary,
     '&.Mui-focused': {
-      color: '#CCAA1D',
+      color: (theme: Theme) => theme.palette.text.primary,
     },
   },
   '& .MuiInputBase-input': {
-    color: '#CCAA1D',
+    color: (theme: Theme) => theme.palette.text.primary,
   },
+};
+
+const getFullImageUrl = (imagePath: string) => {
+  if (imagePath.startsWith('http') || imagePath.startsWith('blob:') || imagePath.startsWith('data:')) {
+    return imagePath;
+  }
+  return `${API_BASE_URL}${imagePath}`;
 };
 
 interface ProjectFormProps {
@@ -50,165 +84,76 @@ interface ProjectFormProps {
   onClose: () => void;
   onSuccess: () => void;
   token: string;
-  project?: {
-    id?: number;
-    title: string;
-    shortDescription: string;
-    longDescription: string;
-    status: string;
-    categories: string[];
-    images: string[];
-    websiteUrl?: string;
-    githubUrl?: string;
-  };
+  existingTags?: string[];
+  project?: Project;
 }
-
-const getFullImageUrl = (imagePath: string) => {
-  // Si l'image est une URL complète ou une URL de données (preview), la retourner telle quelle
-  if (imagePath.startsWith('http') || imagePath.startsWith('blob:') || imagePath.startsWith('data:')) {
-    return imagePath;
-  }
-  // Sinon, construire l'URL complète
-  return `${API_BASE_URL}${imagePath}`;
-};
 
 const ProjectForm: React.FC<ProjectFormProps> = ({
   open,
   onClose,
   onSuccess,
   token,
+  existingTags = [],
   project,
 }) => {
-  const [formData, setFormData] = useState({
+  // États pour la gestion des données
+  const [formData, setFormData] = useState<Partial<Project>>({
     title: project?.title || '',
     shortDescription: project?.shortDescription || '',
-    longDescription: project?.longDescription || '',
+    description: project?.description || '',
     status: project?.status || 'in_progress',
     categories: project?.categories || [],
-    websiteUrl: project?.websiteUrl || '',
     githubUrl: project?.githubUrl || '',
+    websiteUrl: project?.websiteUrl || '',
+    images: project?.images || [],
   });
-
-  const [images, setImages] = useState<string[]>(project?.images || []);
-  const [newCategory, setNewCategory] = useState('');
-  const [uploading, setUploading] = useState(false);
+  
+  // États pour la gestion de l'interface
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [isImageOnlyMode, setIsImageOnlyMode] = useState(false);
-
-  useEffect(() => {
-    if (project) {
-      setFormData({
-        title: project.title,
-        shortDescription: project.shortDescription,
-        longDescription: project.longDescription,
-        status: project.status,
-        categories: project.categories,
-        websiteUrl: project.websiteUrl || '',
-        githubUrl: project.githubUrl || '',
-      });
-      setImages(project.images);
-    }
-  }, [project]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [activeStep, setActiveStep] = useState(0);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  
+  // Validation des champs
+  const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
+  
+  // Étapes du formulaire
+  const steps = ['Informations de base', 'Détails supplémentaires', 'Images'];
+  
+  // Gestionnaires d'événements
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
     
-    try {
-      if (project?.id && isImageOnlyMode) {
-        // Si on est en mode image uniquement, on ne met à jour que les images
-        if (selectedFiles.length > 0) {
-          const formData = new FormData();
-          selectedFiles.forEach((file) => {
-            formData.append('images[]', file);
-          });
-
-          const uploadResponse = await fetch(`${API_ENDPOINTS.PROJECTS}/${project.id}/images`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-            body: formData,
-          });
-
-          if (!uploadResponse.ok) {
-            throw new Error('Failed to upload images');
-          }
-        }
-      } else {
-        // Sinon, on met à jour tout le projet
-        const url = project?.id 
-          ? `${API_ENDPOINTS.PROJECTS}/${project.id}`
-          : API_ENDPOINTS.PROJECTS;
-          
-        const response = await fetch(url, {
-          method: project?.id ? 'PUT' : 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify({ ...formData, images }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to save project');
-        }
-
-        const savedProject = await response.json();
-
-        if (selectedFiles.length > 0) {
-          const formData = new FormData();
-          selectedFiles.forEach((file) => {
-            formData.append('images[]', file);
-          });
-
-          const uploadResponse = await fetch(`${API_ENDPOINTS.PROJECTS}/${savedProject.id}/images`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-            body: formData,
-          });
-
-          if (!uploadResponse.ok) {
-            throw new Error('Failed to upload images');
-          }
-        }
-      }
-
-      onSuccess();
-      onClose();
-    } catch (error) {
-      console.error('Error saving project:', error);
+    // Validation à la volée
+    if (validationErrors[name]) {
+      const newErrors = { ...validationErrors };
+      delete newErrors[name];
+      setValidationErrors(newErrors);
     }
   };
 
-  const handleAddCategory = () => {
-    if (newCategory && !formData.categories.includes(newCategory)) {
-      setFormData({
-        ...formData,
-        categories: [...formData.categories, newCategory],
-      });
-      setNewCategory('');
-    }
+  const handleStatusChange = (e: any) => {
+    setFormData(prev => ({ ...prev, status: e.target.value }));
   };
 
-  const handleDeleteCategory = (categoryToDelete: string) => {
-    setFormData({
-      ...formData,
-      categories: formData.categories.filter(category => category !== categoryToDelete),
-    });
+  const handleCategorySelect = (event: React.SyntheticEvent, value: string[]) => {
+    setFormData(prev => ({ ...prev, categories: value }));
   };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (!files || files.length === 0) return;
+    if (!files) return;
+    
+    setUploading(true);
 
     if (project?.id) {
-      // Si le projet existe déjà, uploader directement
-      setUploading(true);
-      const formData = new FormData();
+      const imageFormData = new FormData();
       Array.from(files).forEach((file) => {
-        formData.append('images[]', file);
+        imageFormData.append('images[]', file);
       });
 
       try {
@@ -217,7 +162,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           headers: {
             'Authorization': `Bearer ${token}`,
           },
-          body: formData,
+          body: imageFormData,
         });
 
         if (!response.ok) {
@@ -225,25 +170,32 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
         }
 
         const data = await response.json();
-        setImages(data.images);
+        setFormData(prev => ({
+          ...prev,
+          images: [...(prev.images || []), ...data.images],
+        }));
+        setSuccess('Images téléchargées avec succès');
+        setTimeout(() => setSuccess(null), 3000);
       } catch (error) {
-        console.error('Error uploading images:', error);
+        logger.error('Error uploading images:', error);
+        setError('Erreur lors du téléchargement des images');
       } finally {
         setUploading(false);
       }
     } else {
-      // Si nouveau projet, stocker les fichiers pour plus tard
       setSelectedFiles(Array.from(files));
-      // Créer des URLs temporaires pour l'aperçu
       const newImages = Array.from(files).map(file => URL.createObjectURL(file));
-      setImages(prevImages => [...prevImages, ...newImages]);
+      setFormData(prev => ({ ...prev, images: [...(prev.images || []), ...newImages] }));
+      setUploading(false);
+      setSuccess('Images prêtes à être téléchargées');
+      setTimeout(() => setSuccess(null), 3000);
     }
   };
 
   const handleDeleteImage = async (index: number) => {
     if (project?.id) {
-      // Si le projet existe, supprimer l'image du serveur
       try {
+        setLoading(true);
         const response = await fetch(`${API_ENDPOINTS.PROJECTS}/${project.id}/images/${index}`, {
           method: 'DELETE',
           headers: {
@@ -255,202 +207,624 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           throw new Error('Failed to delete image');
         }
 
-        const newImages = [...images];
+        const newImages = [...formData.images!];
         newImages.splice(index, 1);
-        setImages(newImages);
+        setFormData(prev => ({ ...prev, images: newImages }));
+        setSuccess('Image supprimée avec succès');
+        setTimeout(() => setSuccess(null), 3000);
       } catch (error) {
-        console.error('Error deleting image:', error);
+        logger.error('Error deleting image:', error);
+        setError('Erreur lors de la suppression de l\'image');
+      } finally {
+        setLoading(false);
       }
     } else {
-      // Si nouveau projet, supprimer juste de la prévisualisation
-      const newImages = [...images];
+      const newImages = [...formData.images!];
       newImages.splice(index, 1);
-      setImages(newImages);
+      setFormData(prev => ({ ...prev, images: newImages }));
       const newFiles = [...selectedFiles];
       newFiles.splice(index, 1);
       setSelectedFiles(newFiles);
     }
   };
 
-  return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h6">
-          {project?.id ? 'Modifier le projet' : 'Ajouter un projet'}
-        </Typography>
-        {project?.id && (
-          <Button
-            variant="outlined"
-            onClick={() => setIsImageOnlyMode(!isImageOnlyMode)}
-            sx={{ ml: 2 }}
-          >
-            {isImageOnlyMode ? 'Mode complet' : 'Gérer les images uniquement'}
-          </Button>
-        )}
-      </DialogTitle>
-      <form onSubmit={handleSubmit}>
-        <DialogContent>
-          <Stack spacing={3}>
-            {!isImageOnlyMode && (
-              <>
+  const validateStep = (step: number): boolean => {
+    const errors: {[key: string]: string} = {};
+    
+    if (step === 0) {
+      if (!formData.title?.trim()) {
+        errors.title = 'Le titre est requis';
+      }
+      if (!formData.shortDescription?.trim()) {
+        errors.shortDescription = 'La description courte est requise';
+      }
+      if (!formData.description?.trim()) {
+        errors.description = 'La description détaillée est requise';
+      }
+    }
+    
+    if (step === 1) {
+      if (formData.githubUrl && !/^(https?:\/\/)?(www\.)?github\.com\/.+/.test(formData.githubUrl)) {
+        errors.githubUrl = 'URL GitHub invalide';
+      }
+      if (formData.websiteUrl && !/^(https?:\/\/)?(www\.)?.+\..+/.test(formData.websiteUrl)) {
+        errors.websiteUrl = 'URL du site invalide';
+      }
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (validateStep(activeStep)) {
+      setActiveStep((prevActiveStep) => prevActiveStep + 1);
+    }
+  };
+
+  const handleBack = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep - 1);
+  };
+
+  const handleClose = () => {
+    // Réinitialiser tous les états lors de la fermeture
+    setLoading(false);
+    setUploading(false);
+    setError(null);
+    setSuccess(null);
+    onClose();
+  };
+
+  const handleSubmit = async () => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      const url = project?.id 
+        ? `${API_ENDPOINTS.PROJECTS}/${project.id}`
+        : API_ENDPOINTS.PROJECTS;
+        
+      const response = await fetch(url, {
+        method: project?.id ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save project');
+      }
+
+      const data = await response.json();
+
+      // Upload des nouvelles images (pour nouveaux projets ET projets existants)
+      if (selectedFiles.length > 0) {
+        setUploading(true);
+        const imageFormData = new FormData();
+        selectedFiles.forEach((file) => {
+          imageFormData.append('images[]', file);
+        });
+
+        const projectId = project?.id || data.id;
+        const uploadResponse = await fetch(`${API_ENDPOINTS.PROJECTS}/${projectId}/images`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          body: imageFormData,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error('Failed to upload images');
+        }
+        setUploading(false);
+      }
+
+      setSuccess('Projet sauvegardé avec succès!');
+      setLoading(false); // ✅ Arrêter le loading après succès
+      
+      // Ne fermer automatiquement que si c'est un nouveau projet sans images à uploader
+      if (!project?.id && selectedFiles.length === 0) {
+        // Nouveau projet sans images - fermeture automatique
+        setTimeout(() => {
+          onSuccess();
+          handleClose();
+        }, 1500);
+      } else {
+        // Projet existant ou avec images - fermeture manuelle
+        setTimeout(() => {
+          setSuccess('Projet sauvegardé ! Vous pouvez continuer à modifier ou fermer.');
+        }, 1000);
+      }
+    } catch (error) {
+      logger.error('Error saving project:', error);
+      setError('Erreur lors de la sauvegarde du projet');
+      setLoading(false);
+    }
+  };
+
+  // Rendu du contenu selon l'étape active
+  const getStepContent = (step: number) => {
+    switch (step) {
+      case 0:
+        return (
+          <Fade in={activeStep === 0} timeout={500}>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
                 <TextField
-                  fullWidth
-                  required
+                  name="title"
                   label="Titre"
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  sx={textFieldStyle}
-                  margin="normal"
-                />
-
-                <TextField
+                  onChange={handleChange}
                   fullWidth
                   required
+                  sx={textFieldStyle}
+                  error={!!validationErrors.title}
+                  helperText={validationErrors.title}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  name="shortDescription"
                   label="Description courte"
                   value={formData.shortDescription}
-                  onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
-                  sx={textFieldStyle}
-                  margin="normal"
-                />
-
-                <TextField
+                  onChange={handleChange}
                   fullWidth
                   required
-                  label="Description longue"
-                  value={formData.longDescription}
-                  onChange={(e) => setFormData({ ...formData, longDescription: e.target.value })}
+                  multiline
+                  rows={2}
+                  sx={textFieldStyle}
+                  error={!!validationErrors.shortDescription}
+                  helperText={validationErrors.shortDescription}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  name="description"
+                  label="Description détaillée"
+                  value={formData.description}
+                  onChange={handleChange}
+                  fullWidth
+                  required
                   multiline
                   rows={4}
                   sx={textFieldStyle}
-                  margin="normal"
+                  error={!!validationErrors.description}
+                  helperText={validationErrors.description}
                 />
-
-                <FormControl fullWidth margin="normal" sx={textFieldStyle}>
-                  <InputLabel id="status-label">Statut</InputLabel>
+              </Grid>
+            </Grid>
+          </Fade>
+        );
+      case 1:
+        return (
+          <Fade in={activeStep === 1} timeout={500}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth required sx={textFieldStyle}>
+                  <InputLabel id="status-label">
+                    Statut
+                  </InputLabel>
                   <Select
                     labelId="status-label"
+                    name="status"
                     value={formData.status}
+                    onChange={handleStatusChange}
                     label="Statut"
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                   >
                     <MenuItem value="in_progress">En cours</MenuItem>
                     <MenuItem value="completed">Terminé</MenuItem>
                     <MenuItem value="abandoned">Abandonné</MenuItem>
                   </Select>
                 </FormControl>
+              </Grid>
 
-                <Box>
-                  <Box sx={{ mb: 2 }}>
-                    <TextField
-                      fullWidth
-                      label="Nouvelle catégorie"
-                      value={newCategory}
-                      onChange={(e) => setNewCategory(e.target.value)}
-                      sx={textFieldStyle}
-                      margin="normal"
-                    />
-                    <Button
-                      onClick={handleAddCategory}
-                      variant="contained"
-                      sx={{ ml: 1 }}
-                    >
-                      Ajouter
-                    </Button>
-                  </Box>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {formData.categories.map((category, index) => (
-                      <Chip
-                        key={index}
-                        label={category}
-                        onDelete={() => handleDeleteCategory(category)}
+              <Grid item xs={12} md={6}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Autocomplete
+                    multiple
+                    freeSolo
+                    options={existingTags}
+                    value={formData.categories}
+                    onChange={handleCategorySelect}
+                    renderTags={(value: string[], getTagProps) =>
+                      value.map((option: string, index: number) => {
+                        const { key, ...tagProps } = getTagProps({ index });
+                        return (
+                          <Chip
+                            key={key}
+                            variant="outlined"
+                            label={option}
+                            {...tagProps}
+                            sx={{ 
+                              borderColor: '#5B348B',
+                              '& .MuiChip-deleteIcon': {
+                                color: theme => theme.palette.text.primary,
+                              }
+                            }}
+                          />
+                        );
+                      })
+                    }
+                    renderOption={(props, option) => (
+                      <li {...props}>
+                        <Typography variant="body2">
+                          {option}
+                        </Typography>
+                      </li>
+                    )}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Catégories"
+                        placeholder="Ajouter une catégorie"
+                        sx={textFieldStyle}
                       />
-                    ))}
-                  </Box>
+                    )}
+                  />
+                  {existingTags.length > 0 && (
+                    <Paper 
+                      variant="outlined" 
+                      sx={{ 
+                        p: 1,
+                        borderColor: '#5B348B',
+                        bgcolor: 'background.paper',
+                        mt: 1
+                      }}
+                    >
+                      <Typography variant="caption" sx={{ mb: 1, display: 'block' }}>
+                        Tags existants :
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {existingTags.map((tag) => (
+                          <Chip
+                            key={tag}
+                            label={tag}
+                            size="small"
+                            variant="outlined"
+                            onClick={() => {
+                              if (!formData.categories?.includes(tag)) {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  categories: [...(prev.categories || []), tag]
+                                }));
+                              }
+                            }}
+                            sx={{
+                              borderColor: formData.categories?.includes(tag) ? 'primary.main' : '#5B348B',
+                              bgcolor: formData.categories?.includes(tag) ? 'rgba(91, 52, 139, 0.1)' : 'transparent',
+                              '&:hover': {
+                                bgcolor: 'rgba(91, 52, 139, 0.1)',
+                              }
+                            }}
+                          />
+                        ))}
+                      </Box>
+                    </Paper>
+                  )}
                 </Box>
+              </Grid>
 
+              <Grid item xs={12} md={6}>
                 <TextField
-                  fullWidth
-                  label="URL du site"
-                  value={formData.websiteUrl}
-                  onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
-                  sx={textFieldStyle}
-                  margin="normal"
-                />
-
-                <TextField
-                  fullWidth
+                  name="githubUrl"
                   label="URL GitHub"
                   value={formData.githubUrl}
-                  onChange={(e) => setFormData({ ...formData, githubUrl: e.target.value })}
+                  onChange={handleChange}
+                  fullWidth
                   sx={textFieldStyle}
-                  margin="normal"
+                  error={!!validationErrors.githubUrl}
+                  helperText={validationErrors.githubUrl}
+                  InputProps={{
+                    startAdornment: (
+                      <GitHubIcon sx={{ mr: 1, color: 'text.secondary' }} fontSize="small" />
+                    ),
+                  }}
                 />
-              </>
-            )}
+              </Grid>
 
-            <Box>
-              <Typography variant="subtitle1" gutterBottom>
-                Images du projet
-              </Typography>
-              {!project?.id && (
-                <Alert severity="info" sx={{ mb: 2 }}>
-                  Les images seront uploadées après la création du projet
-                </Alert>
-              )}
-              <Button
-                component="label"
-                variant="contained"
-                startIcon={<CloudUploadIcon />}
-                disabled={uploading}
-                sx={{ mb: 2 }}
-              >
-                {uploading ? 'Envoi en cours...' : 'Ajouter des images'}
-                <input
-                  type="file"
-                  hidden
-                  multiple
-                  accept="image/*"
-                  onChange={handleFileSelect}
+              <Grid item xs={12} md={6}>
+                <TextField
+                  name="websiteUrl"
+                  label="URL du site"
+                  value={formData.websiteUrl}
+                  onChange={handleChange}
+                  fullWidth
+                  sx={textFieldStyle}
+                  error={!!validationErrors.websiteUrl}
+                  helperText={validationErrors.websiteUrl}
+                  InputProps={{
+                    startAdornment: (
+                      <LanguageIcon sx={{ mr: 1, color: 'text.secondary' }} fontSize="small" />
+                    ),
+                  }}
                 />
-              </Button>
-              {images.length > 0 && (
-                <ImageList cols={3} rowHeight={200} sx={{ mb: 2 }}>
-                  {images.map((image, index) => (
-                    <ImageListItem key={index} sx={{ position: 'relative' }}>
-                      <img
-                        src={getFullImageUrl(image)}
-                        alt={`Project image ${index + 1}`}
-                        loading="lazy"
-                        style={{ height: '200px', objectFit: 'cover' }}
+              </Grid>
+            </Grid>
+          </Fade>
+        );
+      case 2:
+        return (
+          <Fade in={activeStep === 2} timeout={500}>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Paper 
+                  variant="outlined" 
+                  sx={{ 
+                    p: 2,
+                    borderColor: '#5B348B',
+                    bgcolor: 'background.paper'
+                  }}
+                >
+                  <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="subtitle1" gutterBottom>
+                      Images du projet
+                    </Typography>
+                    <Button
+                      variant="outlined"
+                      component="label"
+                      startIcon={<CloudUploadIcon />}
+                      disabled={uploading}
+                      sx={{
+                        borderColor: '#5B348B',
+                        color: theme => theme.palette.text.primary,
+                        '&:hover': {
+                          borderColor: '#5B348B',
+                          bgcolor: 'rgba(91, 52, 139, 0.1)',
+                        }
+                      }}
+                    >
+                      {uploading ? 'Téléchargement...' : 'Ajouter des images'}
+                      <input
+                        type="file"
+                        hidden
+                        multiple
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                        ref={fileInputRef}
                       />
-                      <IconButton
-                        sx={{
-                          position: 'absolute',
-                          top: 8,
-                          right: 8,
-                          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                          '&:hover': {
-                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                          },
-                        }}
-                        onClick={() => handleDeleteImage(index)}
-                      >
-                        <DeleteIcon sx={{ color: 'white' }} />
-                      </IconButton>
-                    </ImageListItem>
-                  ))}
-                </ImageList>
-              )}
-            </Box>
-          </Stack>
+                    </Button>
+                  </Box>
+
+                  {uploading && (
+                    <Box sx={{ width: '100%', mb: 2 }}>
+                      <LinearProgress color="secondary" />
+                    </Box>
+                  )}
+
+                  {formData.images && formData.images.length > 0 ? (
+                    <ImageList cols={3} gap={8}>
+                      {formData.images.map((image, index) => (
+                        <Zoom in={true} key={index} style={{ transitionDelay: `${index * 100}ms` }}>
+                          <ImageListItem 
+                            sx={{ 
+                              overflow: 'hidden',
+                              borderRadius: 1,
+                              border: '1px solid',
+                              borderColor: 'divider'
+                            }}
+                          >
+                            <img
+                              src={image.startsWith('blob:') ? image : getFullImageUrl(image)}
+                              alt={`Image ${index + 1}`}
+                              loading="lazy"
+                              style={{ height: '150px', width: '100%', objectFit: 'cover' }}
+                            />
+                            <IconButton
+                              onClick={() => handleDeleteImage(index)}
+                              disabled={loading}
+                              sx={{
+                                position: 'absolute',
+                                top: 4,
+                                right: 4,
+                                bgcolor: 'rgba(0, 0, 0, 0.5)',
+                                '&:hover': {
+                                  bgcolor: 'rgba(0, 0, 0, 0.7)',
+                                },
+                              }}
+                            >
+                              <DeleteIcon sx={{ color: 'white' }} />
+                            </IconButton>
+                          </ImageListItem>
+                        </Zoom>
+                      ))}
+                    </ImageList>
+                  ) : (
+                    <Box sx={{ 
+                      py: 4, 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      alignItems: 'center',
+                      bgcolor: 'action.hover',
+                      borderRadius: 1,
+                    }}>
+                      <CloudUploadIcon sx={{ fontSize: 60, color: 'text.secondary', opacity: 0.5, mb: 2 }} />
+                      <Typography variant="body1" color="text.secondary">
+                        Aucune image n'a été ajoutée
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        Cliquez sur "Ajouter des images" pour télécharger des fichiers
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {!project?.id && formData.images && formData.images.length > 0 && (
+                    <Alert severity="info" sx={{ mt: 2 }}>
+                      Les images seront téléchargées après la création du projet
+                    </Alert>
+                  )}
+                </Paper>
+              </Grid>
+            </Grid>
+          </Fade>
+        );
+      default:
+        return 'Étape inconnue';
+    }
+  };
+
+  return (
+    <Dialog 
+      open={open} 
+      onClose={loading ? undefined : handleClose}
+      maxWidth="md"
+      fullWidth
+      PaperProps={{
+        sx: {
+          bgcolor: 'background.paper',
+          backgroundImage: 'none',
+        }
+      }}
+    >
+      <form>
+        <DialogTitle sx={{ 
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          {project ? 'Modifier le projet' : 'Créer un nouveau projet'}
+          <IconButton 
+            onClick={handleClose} 
+            size="small"
+            disabled={loading}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent sx={{ pt: 3 }}>
+          <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+
+          {success && (
+            <Alert 
+              severity="success" 
+              sx={{ mb: 2 }}
+              action={
+                success.includes('continuer à modifier') ? (
+                  <Button 
+                    color="inherit" 
+                    size="small" 
+                    onClick={() => {
+                      onSuccess();
+                      handleClose();
+                    }}
+                  >
+                    Fermer
+                  </Button>
+                ) : null
+              }
+            >
+              {success}
+            </Alert>
+          )}
+
+          {getStepContent(activeStep)}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose}>Annuler</Button>
-          <Button type="submit" variant="contained">
-            {isImageOnlyMode ? 'Sauvegarder les images' : (project?.id ? 'Modifier' : 'Créer')}
-          </Button>
+
+        <DialogActions sx={{ 
+          borderTop: '1px solid',
+          borderColor: 'divider',
+          p: 2,
+          display: 'flex',
+          justifyContent: 'space-between'
+        }}>
+          <Box>
+            <Button 
+              onClick={handleClose}
+              disabled={loading}
+              startIcon={<CancelIcon />}
+              sx={{ color: theme => theme.palette.text.primary }}
+            >
+              Annuler
+            </Button>
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              onClick={handleBack}
+              disabled={activeStep === 0 || loading}
+              startIcon={<ArrowBackIcon />}
+              sx={{ color: theme => theme.palette.text.primary }}
+            >
+              Précédent
+            </Button>
+            
+            {activeStep === steps.length - 1 ? (
+              <Button 
+                type="button"
+                variant="contained"
+                disabled={loading || uploading}
+                onClick={handleSubmit}
+                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
+                sx={{
+                  bgcolor: '#5B348B',
+                  color: 'white',
+                  '&:hover': {
+                    bgcolor: '#4A2B70',
+                    color: 'white',
+                  }
+                }}
+              >
+                {loading ? 'Enregistrement...' : (project ? 'Mettre à jour' : 'Créer')}
+              </Button>
+            ) : (
+              <Button
+                onClick={handleNext}
+                variant="contained"
+                endIcon={<ArrowForwardIcon />}
+                sx={{
+                  bgcolor: '#5B348B',
+                  color: 'white',
+                  '&:hover': {
+                    bgcolor: '#4A2B70',
+                    color: 'white',
+                  }
+                }}
+              >
+                Suivant
+              </Button>
+            )}
+          </Box>
         </DialogActions>
       </form>
+
+      <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={loading && success !== null}
+      >
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center',
+          bgcolor: 'background.paper',
+          borderRadius: 2,
+          p: 3,
+          boxShadow: 24,
+        }}>
+          <CircularProgress color="secondary" />
+          <Typography variant="h6" sx={{ mt: 2 }}>
+            {success}
+          </Typography>
+        </Box>
+      </Backdrop>
     </Dialog>
   );
 };

@@ -18,6 +18,19 @@ class ProjectController extends AbstractController
 {
     private string $uploadDirectory;
 
+    // Types MIME autorisés pour les images de projets
+    private const ALLOWED_IMAGE_MIME_TYPES = [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'
+    ];
+
+    // Extensions autorisées pour les images
+    private const ALLOWED_IMAGE_EXTENSIONS = [
+        'jpg', 'jpeg', 'png', 'gif', 'webp'
+    ];
+
+    // Taille maximale pour les images (5MB)
+    private const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
         private ProjectRepository $projectRepository,
@@ -25,6 +38,44 @@ class ProjectController extends AbstractController
         private SluggerInterface $slugger
     ) {
         $this->uploadDirectory = __DIR__ . '/../../public/uploads/projects';
+    }
+
+    /**
+     * Valide une image uploadée selon les critères de sécurité
+     */
+    private function validateUploadedImage(UploadedFile $file): array
+    {
+        $errors = [];
+
+        // Vérifier la taille
+        if ($file->getSize() > self::MAX_IMAGE_SIZE) {
+            $errors[] = 'Image trop volumineuse (maximum 5MB)';
+        }
+
+        // Vérifier le type MIME déclaré
+        $declaredMime = $file->getMimeType();
+        if (!in_array($declaredMime, self::ALLOWED_IMAGE_MIME_TYPES)) {
+            $errors[] = 'Type d\'image non autorisé: ' . $declaredMime;
+        }
+
+        // Vérifier le type MIME réel (plus sécurisé)
+        $realMime = mime_content_type($file->getPathname());
+        if (!in_array($realMime, self::ALLOWED_IMAGE_MIME_TYPES)) {
+            $errors[] = 'Type d\'image réel non autorisé: ' . $realMime;
+        }
+
+        // Vérifier l'extension
+        $extension = $file->guessExtension();
+        if (!in_array($extension, self::ALLOWED_IMAGE_EXTENSIONS)) {
+            $errors[] = 'Extension d\'image non autorisée: ' . $extension;
+        }
+
+        // Vérifier que les types MIME déclaré et réel correspondent
+        if ($declaredMime !== $realMime) {
+            $errors[] = 'Incohérence entre type déclaré et type réel de l\'image';
+        }
+
+        return $errors;
     }
 
     #[Route('', name: 'get_projects', methods: ['GET'])]
@@ -61,7 +112,11 @@ class ProjectController extends AbstractController
         // Set project properties from request data
         $project->setTitle($data['title']);
         $project->setShortDescription($data['shortDescription']);
-        $project->setLongDescription($data['longDescription']);
+        if (isset($data['longDescription'])) {
+            $project->setLongDescription($data['longDescription']);
+        } elseif (isset($data['description'])) {
+            $project->setLongDescription($data['description']);
+        }
         $project->setStatus($data['status']);
         $project->setCategories($data['categories']);
         if (isset($data['websiteUrl'])) {
@@ -100,6 +155,8 @@ class ProjectController extends AbstractController
         }
         if (isset($data['longDescription'])) {
             $project->setLongDescription($data['longDescription']);
+        } elseif (isset($data['description'])) {
+            $project->setLongDescription($data['description']);
         }
         if (isset($data['status'])) {
             $project->setStatus($data['status']);
@@ -154,6 +211,15 @@ class ProjectController extends AbstractController
 
         $images = [];
         foreach ($uploadedFiles as $uploadedFile) {
+            // Validation sécurisée de l'image
+            $validationErrors = $this->validateUploadedImage($uploadedFile);
+            if (!empty($validationErrors)) {
+                return new JsonResponse([
+                    'message' => 'Image non valide: ' . $uploadedFile->getClientOriginalName(),
+                    'errors' => $validationErrors
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
             $originalFilename = pathinfo($uploadedFile->getClientOriginalName(), PATHINFO_FILENAME);
             $safeFilename = $this->slugger->slug($originalFilename);
             $newFilename = $safeFilename . '-' . uniqid() . '.' . $uploadedFile->guessExtension();

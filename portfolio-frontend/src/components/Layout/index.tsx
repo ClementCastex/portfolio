@@ -21,6 +21,8 @@ import {
   Code as CodeIcon,
   Palette as PaletteIcon,
   Dashboard as DashboardIcon,
+  Notes as NotesIcon,
+  ViewKanban as KanbanIcon,
   ChevronRight as ChevronRightIcon,
   ChevronLeft as ChevronLeftIcon,
   Login as LoginIcon,
@@ -31,6 +33,7 @@ import {
 import { RootState } from '../../store';
 import { logout } from '../../store/slices/authSlice';
 import { keyframes } from '@mui/system';
+import ScrollToTop from '../ScrollToTop';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -63,9 +66,11 @@ const Layout: React.FC<LayoutProps> = ({ children, onToggleTheme, isDarkMode }) 
     { text: 'Charte Graphique', icon: <PaletteIcon />, path: '/style-guide' },
   ];
 
-  // Ajouter le Dashboard uniquement pour les administrateurs
+  // Ajouter le Dashboard, Notes et Kanban uniquement pour les administrateurs
   if (user?.roles?.includes('ROLE_ADMIN')) {
     menuItems.push({ text: 'Dashboard', icon: <DashboardIcon />, path: '/admin' });
+    menuItems.push({ text: 'Bloc-notes', icon: <NotesIcon />, path: '/notes' });
+    menuItems.push({ text: 'Kanban', icon: <KanbanIcon />, path: '/kanban' });
   }
 
   const handleLogout = () => {
@@ -101,7 +106,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onToggleTheme, isDarkMode }) 
           height: '100vh',
           left: 0,
           top: 0,
-          borderRight: '2px solid #5B548B',
+          borderRight: '2px solid #5B348B',
           transition: 'width 0.3s ease, align-items 0.3s ease',
           zIndex: 1000
         }}
@@ -230,8 +235,15 @@ const Layout: React.FC<LayoutProps> = ({ children, onToggleTheme, isDarkMode }) 
             onClick={() => setIsOpen(false)}
             sx={{ 
               color: theme => theme.palette.text.primary,
-              alignSelf: 'flex-end',
-              mr: 1
+              position: 'absolute',
+              right: '-12px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              backgroundColor: theme => theme.palette.background.paper,
+              border: '2px solid #5B548B',
+              '&:hover': {
+                backgroundColor: theme => theme.palette.action.hover,
+              }
             }}
           >
             <ChevronLeftIcon />
@@ -261,9 +273,9 @@ const Layout: React.FC<LayoutProps> = ({ children, onToggleTheme, isDarkMode }) 
       {/* Contenu principal */}
       <Box
         component="main"
-        sx={{
+        sx={{ 
           flexGrow: 1,
-          ml: isOpen ? '240px' : '80px',
+          ml: isOpen ? '240px' : '80px', 
           display: 'flex',
           flexDirection: 'column',
           transition: 'margin-left 0.3s ease',
@@ -274,6 +286,9 @@ const Layout: React.FC<LayoutProps> = ({ children, onToggleTheme, isDarkMode }) 
       >
         {children}
       </Box>
+      
+      {/* Bouton pour remonter en haut de la page */}
+      <ScrollToTop />
     </Box>
   );
 };

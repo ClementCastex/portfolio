@@ -1,3 +1,5 @@
+import { SvgIconProps } from '@mui/material';
+
 export interface User {
   id: number;
   email: string;
@@ -10,12 +12,13 @@ export interface Project {
   id: number;
   title: string;
   shortDescription: string;
-  longDescription: string;
-  status: 'completed' | 'in_progress' | 'abandoned';
-  categories: string[];
+  description: string;
   images: string[];
-  websiteUrl?: string;
+  categories: string[];
+  status: string;
   githubUrl?: string;
+  websiteUrl?: string;
+  likes: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -43,4 +46,177 @@ export interface BookmarkState {
   bookmarks: Bookmark[];
   loading: boolean;
   error: string | null;
+}
+
+export interface ProjectCardProps {
+  project: Project;
+  onLikeToggle: (projectId: number) => void;
+  isLiked: boolean;
+  isAdmin?: boolean;
+  onEdit?: (project: Project) => void;
+  onDelete?: (projectId: number) => void;
+  actionLoading?: number | null;
+}
+
+export interface SkillCardProps {
+  icon: React.ReactElement<SvgIconProps>;
+  title: string;
+  description: string;
+}
+
+// Notes system types
+export interface Note {
+  id: number;
+  title: string;
+  contentHtml: string;
+  createdAt: string;
+  updatedAt: string;
+  lastSyncAt: string;
+  isArchived: boolean;
+  tags: NoteTag[];
+  assets: NoteAsset[];
+}
+
+export interface NoteTag {
+  id: number;
+  name: string;
+  colorHex: string;
+  createdAt: string;
+}
+
+export interface NoteAsset {
+  id: number;
+  type: 'image' | 'file';
+  filename: string;
+  mime: string;
+  size: number;
+  url: string;
+  createdAt: string;
+}
+
+export interface NotesState {
+  notes: Note[];
+  tags: NoteTag[];
+  activeNoteId: number | null;
+  loading: boolean;
+  error: string | null;
+  unsavedChanges: Record<number, boolean>;
+}
+
+export interface NoteTabProps {
+  note: Note;
+  isActive: boolean;
+  hasUnsavedChanges: boolean;
+  onSelect: () => void;
+  onClose: () => void;
+  onDuplicate: () => void;
+}
+
+// Kanban system types
+export interface KanbanBoard {
+  id: number;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  columns: KanbanColumn[];
+  tags: KanbanCardTag[];
+}
+
+export interface KanbanColumn {
+  id: number;
+  name: string;
+  position: number;
+  cards: KanbanCard[];
+}
+
+export interface KanbanCard {
+  id: number;
+  title: string;
+  descriptionHtml: string;
+  dueAt: string | null;
+  position: number;
+  createdAt: string;
+  updatedAt: string;
+  priority: 'high' | 'medium' | 'low' | null;
+  estimatedHours: number | null;
+  loggedHours: number | null;
+  checklist: ChecklistItem[] | null;
+  assignedUserIds: number[] | null;
+  tags: KanbanCardTag[];
+  files: KanbanCardFile[];
+  links: KanbanCardLink[];
+  comments: KanbanCardComment[];
+  isOverdue: boolean;
+  checklistProgress: {
+    completed: number;
+    total: number;
+    percentage: number;
+  };
+  priorityColor: string;
+}
+
+export interface KanbanCardTag {
+  id: number;
+  name: string;
+  colorHex: string;
+  createdAt: string;
+}
+
+export interface KanbanCardFile {
+  id: number;
+  filename: string;
+  mime: string;
+  size: number;
+  url: string;
+  isImage: boolean;
+  createdAt: string;
+}
+
+export interface KanbanCardLink {
+  id: number;
+  url: string;
+  title: string | null;
+  faviconUrl: string | null;
+  createdAt: string;
+}
+
+export interface KanbanState {
+  boards: KanbanBoard[];
+  activeBoard: KanbanBoard | null;
+  loading: boolean;
+  error: string | null;
+  draggedCard: KanbanCard | null;
+}
+
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  completed: boolean;
+  createdAt: string;
+}
+
+export interface KanbanCardComment {
+  id: number;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  author: {
+    id: number;
+    email: string;
+    // Add other user fields as needed
+  };
+}
+
+export interface CalendarEvent {
+  id: number;
+  title: string;
+  date: string;
+  isOverdue: boolean;
+  card: KanbanCard;
+}
+
+export interface SocialButtonProps {
+  href: string;
+  icon: React.ReactElement;
+  ariaLabel?: string;
 } 

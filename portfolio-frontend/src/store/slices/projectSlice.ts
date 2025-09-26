@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { ProjectState, Project } from '../../types';
 import { API_ENDPOINTS } from '../../config/api';
+import { API_BASE_URL } from '../../config/api';
 
 const initialState: ProjectState = {
   projects: [],
@@ -10,18 +11,25 @@ const initialState: ProjectState = {
 
 export const fetchProjects = createAsyncThunk(
   'projects/fetchProjects',
-  async () => {
-    const response = await fetch(API_ENDPOINTS.PROJECTS, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch projects');
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await fetch(API_ENDPOINTS.PROJECTS);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Assurez-vous que chaque projet a une propriété likes
+      return data.map((project: any) => ({
+        ...project,
+        // Vérifier si likes ou likeTotal existe, sinon mettre 0
+        likes: project.likeTotal || project.likes || 0,
+      }));
+    } catch (error) {
+      return rejectWithValue('Erreur lors du chargement des projets');
     }
-    const data = await response.json();
-    return data;
   }
 );
 
@@ -88,19 +96,30 @@ export const deleteProject = createAsyncThunk(
   }
 );
 
+export const updateProjectLikesThunk = createAsyncThunk(
+  'projects/updateLikesThunk',
+  async (data: { projectId: number; likes: number }, { dispatch }) => {
+    console.log('Updating project likes:', data);
+    // Vous pourriez appeler une API ici si nécessaire
+    return data;
+  }
+);
+
 const projectSlice = createSlice({
   name: 'projects',
   initialState,
-  reducers: {},
+  reducers: {
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchProjects.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchProjects.fulfilled, (state, action: PayloadAction<Project[]>) => {
+      .addCase(fetchProjects.fulfilled, (state, action) => {
         state.loading = false;
         state.projects = action.payload;
+        state.error = null;
       })
       .addCase(fetchProjects.rejected, (state, action) => {
         state.loading = false;
@@ -117,6 +136,16 @@ const projectSlice = createSlice({
       })
       .addCase(deleteProject.fulfilled, (state, action: PayloadAction<number>) => {
         state.projects = state.projects.filter(p => p.id !== action.payload);
+      })
+      .addCase(updateProjectLikesThunk.fulfilled, (state, action) => {
+        console.log('Updating project likes in reducer:', action.payload);
+        const project = state.projects.find(p => p.id === action.payload.projectId);
+        if (project) {
+          project.likes = action.payload.likes;
+          console.log('Project likes updated successfully:', project);
+        } else {
+          console.warn('Project not found for updating likes:', action.payload.projectId);
+        }
       });
   },
 });
