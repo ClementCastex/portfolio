@@ -89,10 +89,6 @@ Un portfolio moderne et professionnel construit avec **React TypeScript** (front
 
 ### 🔑 **Credentials de test**
 
-**Compte administrateur :**
-- Email : `clement.castex22@gmail.com`
-- Mot de passe : `admin123`
-- Accès : Portfolio + Dashboard + Bloc-notes
 
 *Note : Changez ces credentials en production !*
 
